@@ -241,6 +241,18 @@ export default function App() {
         if (data) setFavorites(data.map((f) => f.article_id));
       });
   }, [userRole]);
+
+  // views カウントアップ
+  useEffect(() => {
+    if (currentView !== "article" || !viewParam) return;
+    const article = articles.find((a) => a.id === viewParam);
+    if (!article) return;
+    void supabase
+      .from("articles")
+      .update({ views: article.views + 1 })
+      .eq("id", article.id);
+  }, [currentView, viewParam]);
+
   const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (message: string) => {
@@ -421,13 +433,6 @@ export default function App() {
   // --- ArticleView ---
   const ArticleView = () => {
     const article = articles.find((a) => a.id === viewParam);
-    useEffect(() => {
-      if (!article) return;
-      void supabase
-        .from("articles")
-        .update({ views: article.views + 1 })
-        .eq("id", article.id);
-    }, [article?.id]);
     if (!article) return <div className="p-10 text-center">記事が見つかりません</div>;
     const writer = writers.find((w) => w.id === article.writerId);
     const isFav = favorites.includes(article.id);
