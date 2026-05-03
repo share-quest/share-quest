@@ -537,7 +537,7 @@ export default function App() {
           </div>
           <div className="border-t pt-8 pb-4 space-y-4">
             <p className="font-bold text-gray-800 text-center">この記事を共有</p>
-            <div className="flex justify-center gap-6">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <button
                 onClick={() =>
                   window.open(
@@ -973,6 +973,7 @@ export default function App() {
   const WriterDashboard = () => {
     const myArticles = articles.filter((a) => a.writerId === currentUserId);
     const [showModal, setShowModal] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
     const [formTitle, setFormTitle] = useState("");
     const [formContent, setFormContent] = useState("");
@@ -1034,6 +1035,7 @@ export default function App() {
           );
           showToast("記事を更新しました");
           setShowModal(false);
+          setShowPreview(false);
         } else {
           showToast("エラーが発生しました");
         }
@@ -1074,6 +1076,7 @@ export default function App() {
           ]);
           showToast("下書きを作成しました");
           setShowModal(false);
+          setShowPreview(false);
         } else {
           showToast("エラーが発生しました");
         }
@@ -1212,13 +1215,55 @@ export default function App() {
                 <h3 className="text-lg font-bold">
                   {editingArticle ? "記事を編集" : "新規記事を作成"}
                 </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="p-2 rounded-full hover:bg-gray-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${showPreview ? "bg-blue-600 text-white border-blue-600" : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"}`}
+                  >
+                    {showPreview ? "編集に戻る" : "プレビュー"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setShowPreview(false);
+                    }}
+                    className="p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
+              {showPreview && (
+                <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 min-h-[200px]">
+                  <div
+                    className={`w-full h-24 rounded-xl mb-3 flex items-center justify-center ${getThumbnailColor(formColor).bg}`}
+                  >
+                    <LogoIcon className="w-10 h-10 opacity-30" />
+                  </div>
+                  <h4 className="font-bold text-gray-800 text-base mb-2 break-words">
+                    {formTitle || <span className="text-gray-400">（タイトル未入力）</span>}
+                  </h4>
+                  {formTags && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {formTags
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter(Boolean)
+                        .map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+                    {formContent || <span className="text-gray-400">（本文未入力）</span>}
+                  </div>
+                </div>
+              )}
               {/* タイトル */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1629,6 +1674,9 @@ export default function App() {
       </main>
       <footer className="max-w-2xl mx-auto px-4 py-8 border-t border-gray-200 mt-4 text-center text-xs text-gray-400 space-y-2">
         <div className="flex justify-center gap-6">
+          <button onClick={() => navigate("about")} className="hover:text-blue-500 hover:underline">
+            About Us
+          </button>
           <button
             onClick={() => navigate("privacy")}
             className="hover:text-blue-500 hover:underline"
@@ -1645,7 +1693,7 @@ export default function App() {
             お問い合わせ
           </button>
         </div>
-        <p>© 2025 SHARE Quest</p>
+        <p>© 2026 SHARE Quest</p>
       </footer>
       {toastMessage && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-3 text-sm font-bold whitespace-nowrap">
@@ -2110,119 +2158,263 @@ function NotFoundView() {
 
 function PrivacyView() {
   const nav = useNavigate();
+  const sections: { title: string; text?: string; items?: string[] }[] = [
+    {
+      title: "1. 収集する情報",
+      items: [
+        "会員登録時に提供いただくメールアドレスおよび表示名",
+        "任意でアップロードいただくプロフィールアイコン画像",
+        "記事の閲覧数などのサービス利用に関するデータ",
+      ],
+    },
+    {
+      title: "2. 利用目的",
+      items: [
+        "サービスのご提供および運営・改善",
+        "本人確認およびアカウント管理",
+        "サービスに関する重要なお知らせの送信",
+      ],
+    },
+    {
+      title: "3. 第三者への提供",
+      text: "当サービスは、法令に基づく場合を除き、ユーザーの個人情報を第三者に提供・開示しません。",
+    },
+    {
+      title: "4. 情報の管理",
+      text: "収集した情報はSupabaseを通じて安全に管理されます。不正アクセスや漏洱を防ぐため、適切な技術的措置を講じています。",
+    },
+    {
+      title: "5. Cookieについて",
+      text: "当サービスは、認証セッションの維持のためCookieを使用することがあります。ブラウザ設定で無効化可能ですが、一部機能をご利用いただけない場合があります。",
+    },
+    {
+      title: "6. ポリシーの変更",
+      text: "本プライバシーポリシーは、必要に応じて変更することがあります。重要な変更がある場合はサービス内でお知らせします。",
+    },
+  ];
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => nav(-1)}
-          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">プライバシーポリシー</h2>
-      </div>
-      <div className="space-y-4 text-sm text-gray-600 leading-loose">
-        <p>
-          SHARE
-          Quest（以下「当サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
-        </p>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">収集する情報</h3>
-          <p>
-            当サービスでは、会員登録時にメールアドレスおよび表示名を収集します。また、アイコン画像をアップロードした場合は画像データを保存します。
-          </p>
+    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => nav(-1)}
+            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-xl font-bold text-gray-800">プライバシーポリシー</h2>
         </div>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">利用目的</h3>
+        <p className="text-xs text-gray-400 mb-6">最終更新日：2026年5月</p>
+        <div className="space-y-5 text-sm text-gray-600 leading-relaxed">
           <p>
-            収集した情報は、サービスの提供・改善、および本人確認のために使用します。第三者への提供は行いません。
+            SHARE
+            Quest（以下「当サービス」）は、ユーザーの個人情報を適切に管理・保護することを最優先に考えています。
           </p>
-        </div>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">お問い合わせ</h3>
-          <p>
-            プライバシーに関するご質問は{" "}
-            <a href="mailto:share.quest.official@gmail.com" className="text-blue-500 underline">
+          {sections.map((s) => (
+            <div key={s.title} className="border-l-4 border-blue-200 pl-4">
+              <h3 className="font-bold text-gray-800 mb-1">{s.title}</h3>
+              {s.items ? (
+                <ul className="list-disc list-inside space-y-1">
+                  {s.items.map((i) => (
+                    <li key={i}>{i}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{s.text}</p>
+              )}
+            </div>
+          ))}
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <h3 className="font-bold text-gray-800 mb-1">お問い合わせ窓口</h3>
+            <p>プライバシーに関するご質問は以下まで。</p>
+            <a
+              href="mailto:share.quest.official@gmail.com"
+              className="text-blue-600 font-bold underline mt-1 inline-block"
+            >
               share.quest.official@gmail.com
-            </a>{" "}
-            までご連絡ください。
-          </p>
+            </a>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
 function TermsView() {
   const nav = useNavigate();
+  const sections: { title: string; text?: string; items?: string[] }[] = [
+    {
+      title: "1. サービスの目的",
+      text: "当サービスは、学びの楽しさを共有することを目的とした記事プラットフォームです。ライターが執筆した記事を通じて、多くの方に学びの魅力を届けることを目指しています。",
+    },
+    {
+      title: "2. 禁止事項",
+      items: [
+        "他のユーザーへの訹謗中傷・嫌がらせ行為",
+        "虚偽・不正確な情報の意図的な投稿",
+        "第三者の著作権・知的財産権を侵害するコンテンツの投稿",
+        "スパムや広告目的のコンテンツの投稿",
+        "当サービスの運営を妨害する一切の行為",
+        "法令に違反する行為",
+      ],
+    },
+    {
+      title: "3. 知的財産権",
+      text: "当サービス上のコンテンツ（記事・デザイン・ロゴ等）の著作権は、各ライターまたは当サービスに帰属します。無断転載・複製は禁止します。",
+    },
+    {
+      title: "4. 免責事項",
+      text: "当サービスは、掃載されている記事の正確性・完全性を保証しません。記事の内容はライター個人の見解であり、当サービスの公式見解ではありません。",
+    },
+    {
+      title: "5. アカウントの管理",
+      text: "ユーザーは自身のアカウント情報を適切に管理する責任を負います。アカウントの不正利用により生じた損害について、当サービスは責任を負いません。",
+    },
+    {
+      title: "6. サービスの変更・終了",
+      text: "当サービスは、事前の通知なくサービス内容の変更や終了を行う場合があります。",
+    },
+    {
+      title: "7. 規約の変更",
+      text: "当サービスは、必要に応じて本利用規約を変更することがあります。変更後も引き続きご利用いただいた場合、変更後の規約に同意したものとみなします。",
+    },
+  ];
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => nav(-1)}
-          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">利用規約</h2>
-      </div>
-      <div className="space-y-4 text-sm text-gray-600 leading-loose">
-        <p>
-          SHARE Quest（以下「当サービス」）をご利用いただく前に、以下の利用規約をお読みください。
-        </p>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">禁止事項</h3>
-          <ul className="list-disc list-inside space-y-1">
-            <li>他のユーザーへの訹謗中傷・嫌がらせ</li>
-            <li>虚偽の情報の投稿</li>
-            <li>著作権を侵害するコンテンツの投稿</li>
-            <li>その他、当サービスの運営を妨げる行為</li>
-          </ul>
+    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => nav(-1)}
+            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-xl font-bold text-gray-800">利用規約</h2>
         </div>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">免責事項</h3>
+        <p className="text-xs text-gray-400 mb-6">最終更新日：2026年5月</p>
+        <div className="space-y-5 text-sm text-gray-600 leading-relaxed">
           <p>
-            当サービスは、掃載されている記事の正確性・完全性を保証しません。利用者ご自身の判断でご活用ください。
+            SHARE
+            Quest（以下「当サービス」）をご利用いただく前に、以下の利用規約をお読みください。サービスをご利用いただくことで、本規約に同意したものとみなします。
           </p>
-        </div>
-        <div>
-          <h3 className="font-bold text-gray-800 mb-1">規約の変更</h3>
-          <p>
-            当サービスは、必要に応じて利用規約を変更することがあります。変更後も引き続きご利用いただいた場合、変更後の規約に同意したものとみなします。
-          </p>
+          {sections.map((s) => (
+            <div key={s.title} className="border-l-4 border-blue-200 pl-4">
+              <h3 className="font-bold text-gray-800 mb-1">{s.title}</h3>
+              {s.items ? (
+                <ul className="list-disc list-inside space-y-1">
+                  {s.items.map((i) => (
+                    <li key={i}>{i}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{s.text}</p>
+              )}
+            </div>
+          ))}
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <p>
+              規約に関するご質問は{" "}
+              <a
+                href="mailto:share.quest.official@gmail.com"
+                className="text-blue-600 font-bold underline"
+              >
+                share.quest.official@gmail.com
+              </a>{" "}
+              までお問い合わせください。
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
 function ContactView() {
   const nav = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const handleSend = () => {
+    if (!name.trim() || !email.trim() || !subject.trim() || !body.trim()) {
+      alert("すべての項目を入力してください");
+      return;
+    }
+    const mailto = `mailto:share.quest.official@gmail.com?subject=${encodeURIComponent(`[お問い合わせ] ${subject}`)}&body=${encodeURIComponent(`お名前: ${name}\nメールアドレス: ${email}\n\n${body}`)}`;
+    window.location.href = mailto;
+  };
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => nav(-1)}
-          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">お問い合わせ</h2>
-      </div>
-      <div className="space-y-4 text-sm text-gray-600 leading-loose">
-        <p>ご質問・ご意見・不具合の報告などは、以下のメールアドレスまでお気軽にご連絡ください。</p>
-        <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 text-center">
-          <p className="text-xs text-gray-400 mb-1">メールアドレス</p>
-          <a
-            href="mailto:share.quest.official@gmail.com"
-            className="text-blue-600 font-bold text-base underline hover:text-blue-800"
+    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="max-w-xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => nav(-1)}
+            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
           >
-            share.quest.official@gmail.com
-          </a>
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-xl font-bold text-gray-800">お問い合わせ</h2>
         </div>
-        <p className="text-xs text-gray-400">
-          ※返信までにお時間をいただく場合があります。あらかじめご了承ください。
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          ご質問・ご意見・不具合のご報告などはこちらからお送りください。送信ボタンを押すとメールアプリが開きます。
         </p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              お名前 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例: 山田 太郎"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              メールアドレス <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="例: example@email.com"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              件名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="例: 記事の内容について"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              お問い合わせ内容 <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder="お問い合わせ内容をご記入ください"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            />
+          </div>
+          <button
+            onClick={handleSend}
+            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            メールアプリで送信する
+          </button>
+          <p className="text-xs text-gray-400 text-center">
+            ※送信ボタンを押すとメールアプリが開きます。返信までお時間をいただく場合があります。
+          </p>
+        </div>
       </div>
     </div>
   );
