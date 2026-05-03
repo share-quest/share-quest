@@ -13,4 +13,5 @@ export interface Profile {
   role: UserRole;
   display_name: string | null;
   avatar_url: string | null;
+  bio?: string | null;
 }
