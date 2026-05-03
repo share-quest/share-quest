@@ -255,6 +255,34 @@ export default function App() {
       .eq("id", article.id);
   }, [currentView, viewParam]);
 
+  // ページタイトル更新
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      home: "SHARE Quest",
+      article: articles.find((a) => a.id === viewParam)?.title
+        ? `${articles.find((a) => a.id === viewParam)!.title} | SHARE Quest`
+        : "記事 | SHARE Quest",
+      search: "検索 | SHARE Quest",
+      writers: "ライター一覧 | SHARE Quest",
+      profile: "プロフィール | SHARE Quest",
+      favorites: "お気に入り | SHARE Quest",
+      settings: "設定 | SHARE Quest",
+      about: "About Us | SHARE Quest",
+      writerDash: "ライター管理 | SHARE Quest",
+      editorDash: "編集長ダッシュボード | SHARE Quest",
+      editorArticles: "全記事管理 | SHARE Quest",
+      editorRecommend: "おすすめ設定 | SHARE Quest",
+      editorWriters: "ライター管理 | SHARE Quest",
+      login: "ログイン | SHARE Quest",
+      register: "ライター登録 | SHARE Quest",
+      privacy: "プライバシーポリシー | SHARE Quest",
+      terms: "利用規約 | SHARE Quest",
+      contact: "お問い合わせ | SHARE Quest",
+      notFound: "404 | SHARE Quest",
+    };
+    document.title = titles[currentView] ?? "SHARE Quest";
+  }, [currentView, viewParam, articles]);
+
   const [toastMessage, setToastMessage] = useState("");
   if (authLoading)
     return (
@@ -1349,6 +1377,15 @@ export default function App() {
           </button>
           <h2 className="text-xl font-bold text-purple-800">編集長ダッシュボード</h2>
         </div>
+        {userRole === "editor" && (
+          <button
+            onClick={() => navigate("writerDash")}
+            className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold shadow-md flex items-center justify-between mb-4"
+          >
+            <span>記事を書く（ライター機能）</span>
+            <ChevronLeft className="w-5 h-5 rotate-180" />
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={() => navigate("editorArticles")}
@@ -1661,7 +1698,9 @@ export default function App() {
         {currentView === "favorites" && <FavoritesView />}
         {currentView === "settings" && <SettingsView />}
         {currentView === "about" && <AboutView />}
-        {currentView === "writerDash" && <WriterDashboard />}
+        {currentView === "writerDash" && (userRole === "writer" || userRole === "editor") && (
+          <WriterDashboard />
+        )}
         {currentView === "editorDash" && <EditorDashboard />}
         {currentView === "editorArticles" && <EditorArticlesView />}
         {currentView === "editorRecommend" && <EditorRecommendView />}
@@ -2226,13 +2265,13 @@ function PrivacyView() {
           ))}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
             <h3 className="font-bold text-gray-800 mb-1">お問い合わせ窓口</h3>
-            <p>プライバシーに関するご質問は以下まで。</p>
-            <a
-              href="mailto:share.quest.official@gmail.com"
-              className="text-blue-600 font-bold underline mt-1 inline-block"
+            <p>プライバシーに関するご質問はお問い合わせページからお気軽にどうぞ。</p>
+            <button
+              onClick={() => nav("/contact")}
+              className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700"
             >
-              share.quest.official@gmail.com
-            </a>
+              お問い合わせはこちら
+            </button>
           </div>
         </div>
       </div>
@@ -2311,16 +2350,13 @@ function TermsView() {
             </div>
           ))}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <p>
-              規約に関するご質問は{" "}
-              <a
-                href="mailto:share.quest.official@gmail.com"
-                className="text-blue-600 font-bold underline"
-              >
-                share.quest.official@gmail.com
-              </a>{" "}
-              までお問い合わせください。
-            </p>
+            <p>規約に関するご質問はお問い合わせページからお気軽にどうぞ。</p>
+            <button
+              onClick={() => nav("/contact")}
+              className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700"
+            >
+              お問い合わせはこちら
+            </button>
           </div>
         </div>
       </div>
@@ -2333,14 +2369,59 @@ function ContactView() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const handleSend = () => {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState("");
+  const handleSend = async () => {
     if (!name.trim() || !email.trim() || !subject.trim() || !body.trim()) {
-      alert("すべての項目を入力してください");
+      setErr("すべての項目を入力してください");
       return;
     }
-    const mailto = `mailto:share.quest.official@gmail.com?subject=${encodeURIComponent(`[お問い合わせ] ${subject}`)}&body=${encodeURIComponent(`お名前: ${name}\nメールアドレス: ${email}\n\n${body}`)}`;
-    window.location.href = mailto;
+    setSending(true);
+    setErr("");
+    const { error } = await supabase
+      .from("contact_messages")
+      .insert({ name, email, subject, body });
+    setSending(false);
+    if (error) {
+      setErr("送信に失敗しました。しばらくたってから再度お試しください。");
+      return;
+    }
+    setSent(true);
   };
+  if (sent) {
+    return (
+      <div className="p-4 sm:p-8 bg-white min-h-screen">
+        <div className="max-w-xl mx-auto text-center pt-16">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-green-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">送信完了</h2>
+          <p className="text-sm text-gray-500 mb-8">
+            お問い合わせを受け付けました。返信までしばらくお待ちください。
+          </p>
+          <button
+            onClick={() => nav(-1)}
+            className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700"
+          >
+            戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
       <div className="max-w-xl mx-auto">
@@ -2354,7 +2435,7 @@ function ContactView() {
           <h2 className="text-xl font-bold text-gray-800">お問い合わせ</h2>
         </div>
         <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-          ご質問・ご意見・不具合のご報告などはこちらからお送りください。送信ボタンを押すとメールアプリが開きます。
+          ご質問・ご意見・不具合のご報告などはこちらからお送りください。
         </p>
         <div className="space-y-4">
           <div>
@@ -2395,7 +2476,7 @@ function ContactView() {
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              お問い合わせ内容 <span className="text-red-500">*</span>
+              内容 <span className="text-red-500">*</span>
             </label>
             <textarea
               value={body}
@@ -2405,15 +2486,14 @@ function ContactView() {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
             />
           </div>
+          {err && <p className="text-sm text-red-500">{err}</p>}
           <button
-            onClick={handleSend}
-            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+            onClick={() => void handleSend()}
+            disabled={sending}
+            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            メールアプリで送信する
+            {sending ? "送信中..." : "送信する"}
           </button>
-          <p className="text-xs text-gray-400 text-center">
-            ※送信ボタンを押すとメールアプリが開きます。返信までお時間をいただく場合があります。
-          </p>
         </div>
       </div>
     </div>
