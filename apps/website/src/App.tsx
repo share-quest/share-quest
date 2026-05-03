@@ -3,6 +3,21 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import type { Profile } from "./supabase";
 import { ChevronLeft, Share2, Eye, X, Plus, Edit3, Check, AlertCircle } from "lucide-react";
+
+type Article = {
+  id: string;
+  title: string;
+  thumbnail: string;
+  writerId: string;
+  views: number;
+  likes: number;
+  tags: string[];
+  isRecommended: boolean;
+  isPopular: boolean;
+  status: "draft" | "pending" | "published";
+  content?: string;
+  summary?: string;
+};
 import imgLogo from "./assets/170805.jpg";
 import imgTitle from "./assets/117_20260501195729.png";
 import imgSearch from "./assets/118_20260501193319.png";
@@ -87,66 +102,6 @@ const MOCK_WRITERS = [
   },
 ];
 const MOCK_TAGS = ["理科", "歴史", "数学", "国語", "英語", "プログラミング", "雑学"];
-const INITIAL_ARTICLES = [
-  {
-    id: "a1",
-    title: "宇宙の果てはどうなっている？",
-    thumbnail: "bg-indigo-900",
-    writerId: "w2",
-    views: 1250,
-    likes: 342,
-    tags: ["理科", "雑学"],
-    isRecommended: true,
-    isPopular: true,
-    status: "published",
-    summary: "夜空を見上げると広がる宇宙。その「果て」はいったいどうなっているのでしょうか？",
-    content:
-      "宇宙は今この瞬間も膨張を続けています。風船が膨らむように、星と星の間の空間が広がっているのです。",
-  },
-  {
-    id: "a2",
-    title: "江戸時代のファストフード事情",
-    thumbnail: "bg-amber-600",
-    writerId: "w3",
-    views: 890,
-    likes: 125,
-    tags: ["歴史", "雑学"],
-    isRecommended: false,
-    isPopular: true,
-    status: "published",
-    summary: "現代の私たちがよく食べるあのご飯、実は江戸時代の「ファストフード」だったんです。",
-    content:
-      "江戸時代、手軽に食べられる外食産業が発達しました。代表的なものが「寿司」「天ぷら」「蕎麦」です。",
-  },
-  {
-    id: "a3",
-    title: "数学のタブー「0で割る」とどうなる？",
-    thumbnail: "bg-teal-600",
-    writerId: "w1",
-    views: 530,
-    likes: 88,
-    tags: ["数学"],
-    isRecommended: true,
-    isPopular: false,
-    status: "published",
-    summary: "学校で「0で割ってはいけない」と習ったはず。でも、もし割ってしまったら？",
-    content: "割り算は掛け算の逆です。「1 ÷ 0 = ?」は「? × 0 = 1」となるため、答えが存在しません。",
-  },
-  {
-    id: "a4",
-    title: "【申請中】面白い錯覚の世界",
-    thumbnail: "bg-purple-500",
-    writerId: "w2",
-    views: 0,
-    likes: 0,
-    tags: ["理科"],
-    isRecommended: false,
-    isPopular: false,
-    status: "pending",
-    summary: "目が騙される不思議な図形について。",
-    content: "錯視のメカニズムを解説します。",
-  },
-];
 
 const VIEW_TO_PATH: Record<string, string> = {
   home: "/",
@@ -156,6 +111,9 @@ const VIEW_TO_PATH: Record<string, string> = {
   favorites: "/favorites",
   about: "/about",
   writerDash: "/writer-dash",
+  editorArticles: "/editor-dash/articles",
+  editorRecommend: "/editor-dash/recommend",
+  editorWriters: "/editor-dash/writers",
   editorDash: "/editor-dash",
   login: "/login",
   register: "/register",
@@ -169,6 +127,11 @@ function parseLocation(pathname: string): { currentView: string; viewParam: stri
   if (pathname === "/about") return { currentView: "about", viewParam: null };
   if (pathname === "/writer-dash") return { currentView: "writerDash", viewParam: null };
   if (pathname === "/editor-dash") return { currentView: "editorDash", viewParam: null };
+  if (pathname === "/editor-dash/articles")
+    return { currentView: "editorArticles", viewParam: null };
+  if (pathname === "/editor-dash/recommend")
+    return { currentView: "editorRecommend", viewParam: null };
+  if (pathname === "/editor-dash/writers") return { currentView: "editorWriters", viewParam: null };
   if (pathname === "/login") return { currentView: "login", viewParam: null };
   if (pathname === "/register") return { currentView: "register", viewParam: null };
   if (pathname === "/writers") return { currentView: "writers", viewParam: null };
@@ -236,7 +199,32 @@ export default function App() {
       <div className="flex items-center justify-center h-screen text-gray-400">読み込み中...</div>
     );
   const currentUserId = userRole === "editor" ? "w1" : userRole === "writer" ? "w2" : "user1";
-  const [articles, setArticles] = useState(INITIAL_ARTICLES);
+  const [articles, setArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    void supabase
+      .from("articles")
+      .select("*")
+      .then(({ data }) => {
+        if (data) {
+          setArticles(
+            data.map((a) => ({
+              id: a.id,
+              title: a.title,
+              thumbnail: a.thumbnail,
+              writerId: a.writer_id,
+              views: a.views,
+              likes: a.likes,
+              tags: a.tags,
+              isRecommended: a.is_recommended,
+              isPopular: a.is_popular,
+              status: a.status,
+              content: a.content,
+            })),
+          );
+        }
+      });
+  }, []);
   const [fontSize, setFontSize] = useState("medium");
   const [favorites, setFavorites] = useState(["a1"]);
   const [toastMessage, setToastMessage] = useState("");
@@ -907,7 +895,7 @@ export default function App() {
         </div>
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={() => showToast("全記事管理(編集・削除)")}
+            onClick={() => navigate("editorArticles")}
             className="p-4 bg-white border border-purple-200 rounded-xl shadow-sm text-center font-bold text-purple-700 hover:bg-purple-50"
           >
             全記事の
@@ -915,7 +903,7 @@ export default function App() {
             編集・削除
           </button>
           <button
-            onClick={() => showToast("おすすめ/人気 設定")}
+            onClick={() => navigate("editorRecommend")}
             className="p-4 bg-white border border-purple-200 rounded-xl shadow-sm text-center font-bold text-purple-700 hover:bg-purple-50"
           >
             おすすめ・人気
@@ -923,7 +911,7 @@ export default function App() {
             設定
           </button>
           <button
-            onClick={() => showToast("ライター追加・管理")}
+            onClick={() => navigate("editorWriters")}
             className="p-4 bg-white border border-purple-200 rounded-xl shadow-sm text-center font-bold text-purple-700 hover:bg-purple-50 col-span-2 flex items-center justify-center gap-2"
           >
             <CustomUserIcon className="w-5 h-5" /> 新規ライターの追加
@@ -946,20 +934,43 @@ export default function App() {
                 </p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setArticles(
-                        articles.map((a) =>
-                          a.id === article.id ? { ...a, status: "published" } : a,
-                        ),
-                      );
-                      showToast("記事を公開しました");
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from("articles")
+                        .update({ status: "published" })
+                        .eq("id", article.id);
+                      if (!error) {
+                        setArticles(
+                          articles.map((a) =>
+                            a.id === article.id ? { ...a, status: "published" } : a,
+                          ),
+                        );
+                        showToast("記事を公開しました");
+                      } else {
+                        showToast("エラーが発生しました");
+                      }
                     }}
                     className="flex-1 py-2 bg-green-500 text-white text-sm font-bold rounded-lg hover:bg-green-600 flex items-center justify-center gap-1 shadow-sm"
                   >
                     <Check className="w-4 h-4" /> 許可 (公開)
                   </button>
                   <button
-                    onClick={() => showToast("差し戻しました")}
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from("articles")
+                        .update({ status: "draft" })
+                        .eq("id", article.id);
+                      if (!error) {
+                        setArticles(
+                          articles.map((a) =>
+                            a.id === article.id ? { ...a, status: "draft" } : a,
+                          ),
+                        );
+                        showToast("差し戻しました");
+                      } else {
+                        showToast("エラーが発生しました");
+                      }
+                    }}
                     className="flex-1 py-2 bg-white text-gray-600 border border-gray-300 text-sm font-bold rounded-lg hover:bg-gray-50"
                   >
                     確認・差し戻し
@@ -1131,9 +1142,17 @@ export default function App() {
   };
 
   // --- ヘッダー非表示判定 ---
-  const hideHeader = ["article", "about", "writerDash", "editorDash", "login", "register"].includes(
-    currentView,
-  );
+  const hideHeader = [
+    "article",
+    "about",
+    "writerDash",
+    "editorDash",
+    "editorArticles",
+    "editorRecommend",
+    "editorWriters",
+    "login",
+    "register",
+  ].includes(currentView);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10 text-gray-800 font-sans selection:bg-blue-200">
@@ -1150,6 +1169,9 @@ export default function App() {
         {currentView === "about" && <AboutView />}
         {currentView === "writerDash" && <WriterDashboard />}
         {currentView === "editorDash" && <EditorDashboard />}
+        {currentView === "editorArticles" && <EditorArticlesView />}
+        {currentView === "editorRecommend" && <EditorRecommendView />}
+        {currentView === "editorWriters" && <EditorWritersView />}
         {currentView === "login" && <LoginView />}
         {currentView === "register" && <RegisterView />}
       </main>
@@ -1162,6 +1184,274 @@ export default function App() {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorArticlesView() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
+
+  useEffect(() => {
+    void supabase
+      .from("articles")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data)
+          setArticles(
+            data.map((a) => ({
+              id: a.id,
+              title: a.title,
+              thumbnail: a.thumbnail,
+              writerId: a.writer_id,
+              views: a.views,
+              likes: a.likes,
+              tags: a.tags,
+              isRecommended: a.is_recommended,
+              isPopular: a.is_popular,
+              status: a.status,
+              content: a.content,
+            })),
+          );
+        setLoading(false);
+      });
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("この記事を削除しますか？")) return;
+    const { error } = await supabase.from("articles").delete().eq("id", id);
+    if (!error) setArticles(articles.filter((a) => a.id !== id));
+  };
+
+  const statusLabel = (s: string) =>
+    s === "published" ? "公開中" : s === "pending" ? "承認待ち" : "下書き";
+  const statusColor = (s: string) =>
+    s === "published"
+      ? "text-green-600 bg-green-50"
+      : s === "pending"
+        ? "text-orange-600 bg-orange-50"
+        : "text-gray-500 bg-gray-100";
+
+  return (
+    <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-purple-800">全記事の編集・削除</h2>
+      </div>
+      {loading ? (
+        <p className="text-center text-gray-400 py-8">読み込み中...</p>
+      ) : (
+        <div className="space-y-3">
+          {articles.map((a) => (
+            <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-800 text-sm truncate">{a.title}</p>
+                  <span
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor(a.status)}`}
+                  >
+                    {statusLabel(a.status)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleDelete(a.id)}
+                  className="p-2 text-red-400 hover:bg-red-50 rounded-lg flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorRecommendView() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
+
+  useEffect(() => {
+    void supabase
+      .from("articles")
+      .select("*")
+      .eq("status", "published")
+      .then(({ data }) => {
+        if (data)
+          setArticles(
+            data.map((a) => ({
+              id: a.id,
+              title: a.title,
+              thumbnail: a.thumbnail,
+              writerId: a.writer_id,
+              views: a.views,
+              likes: a.likes,
+              tags: a.tags,
+              isRecommended: a.is_recommended,
+              isPopular: a.is_popular,
+              status: a.status,
+              content: a.content,
+            })),
+          );
+        setLoading(false);
+      });
+  }, []);
+
+  const toggle = async (id: string, field: "is_recommended" | "is_popular", current: boolean) => {
+    const { error } = await supabase
+      .from("articles")
+      .update({ [field]: !current })
+      .eq("id", id);
+    if (!error)
+      setArticles(
+        articles.map((a) =>
+          a.id === id
+            ? {
+                ...a,
+                isRecommended: field === "is_recommended" ? !current : a.isRecommended,
+                isPopular: field === "is_popular" ? !current : a.isPopular,
+              }
+            : a,
+        ),
+      );
+  };
+
+  return (
+    <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-purple-800">おすすめ・人気設定</h2>
+      </div>
+      {loading ? (
+        <p className="text-center text-gray-400 py-8">読み込み中...</p>
+      ) : (
+        <div className="space-y-3">
+          {articles.map((a) => (
+            <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <p className="font-bold text-gray-800 text-sm mb-3">{a.title}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => toggle(a.id, "is_recommended", a.isRecommended)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg border-2 transition-all ${a.isRecommended ? "bg-blue-500 text-white border-blue-500" : "bg-white text-gray-500 border-gray-200"}`}
+                >
+                  おすすめ {a.isRecommended ? "✓" : ""}
+                </button>
+                <button
+                  onClick={() => toggle(a.id, "is_popular", a.isPopular)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg border-2 transition-all ${a.isPopular ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-200"}`}
+                >
+                  人気 {a.isPopular ? "✓" : ""}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorWritersView() {
+  const [writers, setWriters] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
+
+  useEffect(() => {
+    void supabase
+      .from("profiles")
+      .select("*")
+      .in("role", ["writer", "editor"])
+      .then(({ data }) => {
+        if (data) setWriters(data);
+        setLoading(false);
+      });
+  }, []);
+
+  const changeRole = async (id: string, role: "viewer" | "writer" | "editor") => {
+    const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
+    if (!error) setWriters(writers.map((w) => (w.id === id ? { ...w, role } : w)));
+  };
+
+  const promoteWriter = async (email: string) => {
+    const { data } = await supabase.from("profiles").select("*").eq("email", email).single();
+    if (!data) {
+      alert("ユーザーが見つかりません");
+      return;
+    }
+    await supabase.from("profiles").update({ role: "writer" }).eq("id", data.id);
+    setWriters([...writers, { ...data, role: "writer" }]);
+  };
+
+  const [newEmail, setNewEmail] = useState("");
+
+  return (
+    <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-purple-800">ライター管理</h2>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <p className="font-bold text-gray-800 mb-2 text-sm">ライターに昇格</p>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            placeholder="メールアドレス"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <button
+            onClick={() => {
+              void promoteWriter(newEmail);
+              setNewEmail("");
+            }}
+            className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700"
+          >
+            追加
+          </button>
+        </div>
+      </div>
+      {loading ? (
+        <p className="text-center text-gray-400 py-8">読み込み中...</p>
+      ) : (
+        <div className="space-y-3">
+          {writers.map((w) => (
+            <div
+              key={w.id}
+              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p className="font-bold text-gray-800 text-sm">{w.display_name ?? w.email}</p>
+                <p className="text-xs text-gray-400">{w.email}</p>
+              </div>
+              <select
+                value={w.role}
+                onChange={(e) =>
+                  void changeRole(w.id, e.target.value as "viewer" | "writer" | "editor")
+                }
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none"
+              >
+                <option value="viewer">閲覧者</option>
+                <option value="writer">ライター</option>
+                <option value="editor">編集長</option>
+              </select>
+            </div>
+          ))}
+          {writers.length === 0 && (
+            <p className="text-center text-gray-400 py-6 text-sm">ライターがいません</p>
+          )}
         </div>
       )}
     </div>
