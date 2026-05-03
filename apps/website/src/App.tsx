@@ -82,26 +82,6 @@ const CustomSettingsIcon = ({
   />
 );
 
-const MOCK_WRITERS = [
-  {
-    id: "w1",
-    name: "山田 太郎",
-    role: "編集長",
-    bio: "「学ぶって楽しい！」を全力で伝えます。科学とテクノロジーが好きです。",
-  },
-  {
-    id: "w2",
-    name: "佐藤 花子",
-    role: "ライター",
-    bio: "日常に潜む理科の面白い話を探して発信しています。",
-  },
-  {
-    id: "w3",
-    name: "鈴木 一郎",
-    role: "ライター",
-    bio: "歴史の教科書には載っていない裏話をわかりやすく解説中。",
-  },
-];
 const MOCK_TAGS = ["理科", "歴史", "数学", "国語", "英語", "プログラミング", "雑学"];
 
 const THUMBNAIL_COLORS = [
@@ -210,8 +190,19 @@ export default function App() {
     return (
       <div className="flex items-center justify-center h-screen text-gray-400">読み込み中...</div>
     );
-  const currentUserId = userRole === "editor" ? "w1" : userRole === "writer" ? "w2" : "user1";
+  const currentUserId = profile?.id ?? "";
+  const [writers, setWriters] = useState<Profile[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    void supabase
+      .from("profiles")
+      .select("*")
+      .in("role", ["writer", "editor"])
+      .then(({ data }) => {
+        if (data) setWriters(data as Profile[]);
+      });
+  }, []);
 
   useEffect(() => {
     void supabase
@@ -338,7 +329,7 @@ export default function App() {
     article: any;
     layout?: "horizontal" | "vertical";
   }) => {
-    const writer = MOCK_WRITERS.find((w) => w.id === article.writerId);
+    const writer = writers.find((w) => w.id === article.writerId);
     const isFav = favorites.includes(article.id);
     return (
       <div
@@ -363,7 +354,7 @@ export default function App() {
           </h3>
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500 flex items-center gap-1 truncate max-w-[70%]">
-              <CustomUserIcon className="w-4 h-4" /> {writer?.name}
+              <CustomUserIcon className="w-4 h-4" /> {writer?.display_name ?? writer?.email}
             </span>
             <CustomStarIcon className="w-5 h-5" active={isFav} />
           </div>
@@ -431,8 +422,10 @@ export default function App() {
   const ArticleView = () => {
     const article = articles.find((a) => a.id === viewParam);
     if (!article) return <div className="p-10 text-center">記事が見つかりません</div>;
-    const writer = MOCK_WRITERS.find((w) => w.id === article.writerId);
+    const writer = writers.find((w) => w.id === article.writerId);
     const isFav = favorites.includes(article.id);
+    const articleUrl = `${window.location.origin}/articles/${article.id}`;
+    const color = getThumbnailColor(article.thumbnailColor ?? null);
     return (
       <div className="animate-in slide-in-from-right-8 duration-300 bg-white min-h-screen">
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b px-2 py-2 flex items-center">
@@ -444,19 +437,16 @@ export default function App() {
             <span className="text-sm font-bold text-gray-600">戻る</span>
           </button>
         </div>
-        <div
-          className={`${article.thumbnail} w-full h-48 flex items-center justify-center relative`}
-        >
+        <div className={`${color.bg} w-full h-48 flex items-center justify-center`}>
           <LogoIcon className="w-20 h-20 opacity-20" />
-          <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-            画像モック
-          </span>
         </div>
         <div className="p-4 space-y-5">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{article.title}</h1>
-          <div className="bg-blue-50 p-4 rounded-xl text-gray-700 border border-blue-100 font-medium">
-            {article.summary}
-          </div>
+          {article.summary && (
+            <div className="bg-blue-50 p-4 rounded-xl text-gray-700 border border-blue-100 font-medium">
+              {article.summary}
+            </div>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md">
@@ -474,7 +464,7 @@ export default function App() {
             </button>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {article.tags.map((tag) => (
+            {(article.tags ?? []).map((tag) => (
               <span
                 key={tag}
                 className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full border border-gray-200"
@@ -483,45 +473,49 @@ export default function App() {
               </span>
             ))}
           </div>
-          <div
-            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:bg-gray-50"
-            onClick={() => navigate("profile", writer?.id)}
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-gray-100 p-2 rounded-full border border-gray-200">
-                <CustomUserIcon className="w-8 h-8" />
+          {writer && (
+            <div
+              className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:bg-gray-50"
+              onClick={() => navigate("profile", writer.id)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-gray-100 p-2 rounded-full border border-gray-200">
+                  {writer.avatar_url
+                    ? <img src={writer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                    : <CustomUserIcon className="w-8 h-8" />}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-bold mb-0.5">この記事を書いた人</p>
+                  <p className="font-bold text-gray-800">{writer.display_name ?? writer.email}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 font-bold mb-0.5">この記事を書いた人</p>
-                <p className="font-bold text-gray-800">{writer?.name}</p>
-              </div>
+              <span className="text-xs font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full">
+                プロフィールへ
+              </span>
             </div>
-            <span className="text-xs font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full">
-              プロフィールへ
-            </span>
-          </div>
-          <div
-            className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}
-          >
-            {article.content}
+          )}
+          <div className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}>
+            {article.content
+              ? article.content
+              : <span className="text-gray-400 italic">本文はまだ書かれていません</span>}
           </div>
           <div className="border-t pt-8 pb-4 space-y-4">
             <p className="font-bold text-gray-800 text-center">この記事を共有</p>
             <div className="flex justify-center gap-6">
               <button
-                onClick={() => showToast("Xにシェアしました")}
+                onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank")}
                 className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center hover:opacity-80 shadow-md"
               >
                 <span className="font-bold text-2xl">X</span>
               </button>
               <button
-                onClick={() => showToast("LINEにシェアしました")}
+                onClick={() => window.open(`https://line.me/R/msg/text/?${encodeURIComponent(article.title + " " + articleUrl)}`, "_blank")}
                 className="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center hover:opacity-80 shadow-md"
               >
                 <span className="font-bold text-sm">LINE</span>
               </button>
               <button
-                onClick={() => showToast("リンクをコピーしました")}
+                onClick={() => { void navigator.clipboard.writeText(articleUrl); showToast("リンクをコピーしました"); }}
                 className="w-14 h-14 bg-white border-2 border-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-sm"
               >
                 <Share2 className="w-6 h-6" />
@@ -535,67 +529,122 @@ export default function App() {
   };
 
   // --- SearchView ---
-  const SearchView = () => (
-    <div className="p-4 space-y-6 animate-in fade-in duration-300">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="キーワードで検索"
-          className="w-full pl-12 pr-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-gray-700 shadow-sm"
-        />
-        <div className="absolute left-3 top-3.5">
-          <CustomSearchIcon className="w-7 h-7" />
-        </div>
-      </div>
-      <section className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-        <h3 className="text-sm font-bold text-gray-500 mb-3 border-b pb-2">タグでしぼる</h3>
-        <div className="flex flex-wrap gap-2">
-          {MOCK_TAGS.map((tag) => (
-            <button
-              key={tag}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg text-sm font-bold hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
-            >
-              #{tag}
+  const SearchView = () => {
+    const [keyword, setKeyword] = useState("");
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedWriterIds, setSelectedWriterIds] = useState<string[]>([]);
+
+    const allTags = Array.from(new Set(
+      articles.flatMap((a) => a.tags ?? [])
+    )).filter(Boolean);
+    const displayTags = allTags.length > 0 ? allTags : MOCK_TAGS;
+
+    const results = articles.filter((a) => {
+      if (a.status !== "published") return false;
+      if (keyword && !a.title.toLowerCase().includes(keyword.toLowerCase()) &&
+          !(a.content ?? "").toLowerCase().includes(keyword.toLowerCase())) return false;
+      if (selectedTags.length > 0 && !selectedTags.some((t) => (a.tags ?? []).includes(t))) return false;
+      if (selectedWriterIds.length > 0 && !selectedWriterIds.includes(a.writerId)) return false;
+      return true;
+    });
+
+    const toggleTag = (tag: string) =>
+      setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
+    const toggleWriter = (id: string) =>
+      setSelectedWriterIds((prev) => prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]);
+    const hasFilter = keyword || selectedTags.length > 0 || selectedWriterIds.length > 0;
+
+    return (
+      <div className="p-4 space-y-4 animate-in fade-in duration-300">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="キーワードで検索"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-gray-700 shadow-sm"
+          />
+          <div className="absolute left-3 top-3.5">
+            <CustomSearchIcon className="w-7 h-7" />
+          </div>
+          {keyword && (
+            <button onClick={() => setKeyword("")} className="absolute right-3 top-4 text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
             </button>
-          ))}
+          )}
         </div>
-      </section>
-      <section className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-        <h3 className="text-sm font-bold text-gray-500 mb-3 border-b pb-2">ライターでしぼる</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {MOCK_WRITERS.map((writer) => (
-            <div
-              key={writer.id}
-              className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-colors"
-            >
-              <CustomUserIcon className="w-6 h-6" />
-              <span className="text-sm font-bold text-gray-700 truncate">{writer.name}</span>
+        <section className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-sm font-bold text-gray-500 mb-3 border-b pb-2">タグでしぼる</h3>
+          <div className="flex flex-wrap gap-2">
+            {displayTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1.5 border rounded-lg text-sm font-bold transition-colors ${selectedTags.includes(tag) ? "bg-blue-500 border-blue-500 text-white" : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600"}`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-sm font-bold text-gray-500 mb-3 border-b pb-2">ライターでしぼる</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {writers.map((w) => (
+              <button
+                key={w.id}
+                onClick={() => toggleWriter(w.id)}
+                className={`flex items-center gap-2 p-2 border rounded-lg text-left transition-colors ${selectedWriterIds.includes(w.id) ? "bg-blue-50 border-blue-400" : "bg-gray-50 border-gray-200 hover:bg-blue-50 hover:border-blue-200"}`}
+              >
+                {w.avatar_url
+                  ? <img src={w.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
+                  : <CustomUserIcon className="w-6 h-6" />}
+                <span className="text-sm font-bold text-gray-700 truncate">{w.display_name ?? w.email}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+        {hasFilter && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-gray-700">検索結果 ({results.length}件)</p>
+              <button
+                onClick={() => { setKeyword(""); setSelectedTags([]); setSelectedWriterIds([]); }}
+                className="text-xs text-gray-500 underline"
+              >
+                フィルターをリセット
+              </button>
             </div>
-          ))}
-        </div>
-      </section>
-      <button className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all text-lg">
-        検索する
-      </button>
-    </div>
-  );
+            <div className="space-y-3">
+              {results.length === 0
+                ? <p className="text-gray-500 text-center py-8 bg-white rounded-xl border">該当する記事が見つかりませんでした</p>
+                : results.map((a) => <ArticleCard key={a.id} article={a} />)
+              }
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // --- WritersView ---
   const WritersView = () => {
-    const editors = MOCK_WRITERS.filter((w) => w.role === "編集長");
-    const writers = MOCK_WRITERS.filter((w) => w.role === "ライター");
-    const WriterRow = ({ writer }: { writer: any }) => (
+    const editors = writers.filter((w) => w.role === "editor");
+    const writerList = writers.filter((w) => w.role === "writer");
+    const WriterRow = ({ w }: { w: Profile }) => (
       <div
         className="flex items-center justify-between p-4 bg-white border-b last:border-b-0 cursor-pointer hover:bg-blue-50 transition-colors"
-        onClick={() => navigate("profile", writer.id)}
+        onClick={() => navigate("profile", w.id)}
       >
         <div className="flex items-center gap-4">
-          <div className="bg-gray-100 p-2 rounded-full border border-gray-200">
-            <CustomUserIcon className="w-8 h-8" />
+          <div className="bg-gray-100 rounded-full border border-gray-200 overflow-hidden w-12 h-12 flex items-center justify-center">
+            {w.avatar_url
+              ? <img src={w.avatar_url} className="w-12 h-12 object-cover" alt="" />
+              : <CustomUserIcon className="w-8 h-8" />}
           </div>
           <div>
-            <p className="font-bold text-gray-800 text-lg">{writer.name}</p>
-            <p className="text-xs font-bold text-blue-500">{writer.role}</p>
+            <p className="font-bold text-gray-800 text-lg">{w.display_name ?? w.email}</p>
+            <p className="text-xs font-bold text-blue-500">{w.role === "editor" ? "編集長" : "ライター"}</p>
           </div>
         </div>
         <span className="text-sm font-bold text-gray-500 flex items-center">
@@ -608,22 +657,20 @@ export default function App() {
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 border-b-2 border-blue-500 pb-2 inline-flex">
           <CustomUserIcon className="w-6 h-6" active={true} /> ライター・編集長 一覧
         </h2>
+        {editors.length > 0 && (
+          <section>
+            <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              {editors.map((w) => <WriterRow key={w.id} w={w} />)}
+            </div>
+          </section>
+        )}
         <section>
-          <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
+          <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">ライター</h3>
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            {editors.map((w) => (
-              <WriterRow key={w.id} writer={w} />
-            ))}
-          </div>
-        </section>
-        <section>
-          <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2 mt-6">
-            ライター (あいうえお順)
-          </h3>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            {writers.map((w) => (
-              <WriterRow key={w.id} writer={w} />
-            ))}
+            {writerList.length > 0
+              ? writerList.map((w) => <WriterRow key={w.id} w={w} />)
+              : <p className="text-sm text-gray-400 text-center py-6">ライターがまだいません</p>}
           </div>
         </section>
       </div>
@@ -632,8 +679,8 @@ export default function App() {
 
   // --- ProfileView ---
   const ProfileView = () => {
-    const writer = MOCK_WRITERS.find((w) => w.id === viewParam);
-    if (!writer) return <div>見つかりません</div>;
+    const writer = writers.find((w) => w.id === viewParam);
+    if (!writer) return <div className="p-10 text-center text-gray-500">プロフィールが見つかりません</div>;
     const writerArticles = articles.filter(
       (a) => a.writerId === writer.id && a.status === "published",
     );
@@ -644,27 +691,31 @@ export default function App() {
             onClick={() => navigate("writers")}
             className="absolute top-4 left-4 p-2 rounded-full bg-black/20 hover:bg-black/30 flex items-center gap-1"
           >
-            <ChevronLeft className="w-5 h-5 text-white" />{" "}
+            <ChevronLeft className="w-5 h-5 text-white" />
             <span className="text-xs font-bold">戻る</span>
           </button>
-          <div className="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg border-4 border-white">
-            <CustomUserIcon className="w-16 h-16" />
+          <div className="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
+            {writer.avatar_url
+              ? <img src={writer.avatar_url} className="w-24 h-24 object-cover" alt="" />
+              : <CustomUserIcon className="w-16 h-16" />}
           </div>
-          <h2 className="text-2xl font-bold mb-1">{writer.name}</h2>
+          <h2 className="text-2xl font-bold mb-1">{writer.display_name ?? writer.email}</h2>
           <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-sm">
-            {writer.role}
+            {writer.role === "editor" ? "編集長" : "ライター"}
           </span>
         </div>
         <div className="p-4 space-y-6 -mt-4 relative z-10">
-          <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100 text-gray-700 text-sm font-medium leading-relaxed">
-            {writer.bio}
-          </div>
+          {writer.bio && (
+            <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100 text-gray-700 text-sm font-medium leading-relaxed">
+              {writer.bio}
+            </div>
+          )}
           <section>
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <span className="bg-blue-100 p-1.5 rounded-lg">
                 <LogoIcon className="w-5 h-5" />
-              </span>{" "}
-              この人の記事
+              </span>
+              この人の記事 ({writerArticles.length}件)
             </h3>
             <div className="space-y-3">
               {writerArticles.length > 0 ? (
@@ -758,6 +809,9 @@ export default function App() {
         />
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {userRole !== "guest" && (
+          <DisplayNameEdit profile={profile} setProfile={setProfile} />
+        )}
         {userRole !== "guest" && (
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div>
@@ -1118,7 +1172,7 @@ export default function App() {
               >
                 <p className="font-bold text-gray-800 mb-1">{article.title}</p>
                 <p className="text-xs text-gray-500 mb-3">
-                  申請者: {MOCK_WRITERS.find((w) => w.id === article.writerId)?.name}
+                  申請者: {writers.find((w) => w.id === article.writerId)?.display_name ?? "不明"}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -1642,6 +1696,61 @@ function EditorWritersView() {
           {writers.length === 0 && (
             <p className="text-center text-gray-400 py-6 text-sm">ライターがいません</p>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DisplayNameEdit({
+  profile,
+  setProfile,
+}: {
+  profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(profile?.display_name ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!profile) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ display_name: name }).eq("id", profile.id);
+    if (!error) {
+      setProfile((p) => (p ? { ...p, display_name: name } : p));
+      setEditing(false);
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="p-4 border-b border-gray-100">
+      <p className="text-xs text-gray-500 mb-1 font-bold">表示名</p>
+      {editing ? (
+        <div className="flex gap-2">
+          <input
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <button
+            onClick={() => void handleSave()}
+            disabled={saving}
+            className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {saving ? "…" : "保存"}
+          </button>
+          <button onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg">
+            取消
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-gray-800">{profile?.display_name ?? "（未設定）"}</p>
+          <button onClick={() => { setName(profile?.display_name ?? ""); setEditing(true); }} className="text-xs text-blue-500 font-bold underline">
+            編集
+          </button>
         </div>
       )}
     </div>
