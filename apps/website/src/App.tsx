@@ -192,7 +192,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    void supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         supabase
           .from("profiles")
@@ -733,6 +733,12 @@ export default function App() {
           </button>
         </div>
       )}
+      {userRole !== "guest" && (
+        <AvatarUpload
+          profile={profile}
+          onUpdate={(url) => setProfile((p) => (p ? { ...p, avatar_url: url } : p))}
+        />
+      )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {userRole !== "guest" && (
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -1158,6 +1164,79 @@ export default function App() {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function AvatarUpload({
+  profile,
+  onUpdate,
+}: {
+  profile: Profile | null;
+  onUpdate: (url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("2MB以下の画像を選択してください");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+
+    const ext = file.name.split(".").pop();
+    const filePath = `${profile.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+    if (uploadError) {
+      setError("アップロードに失敗しました");
+      setUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    const publicUrl = data.publicUrl + "?t=" + Date.now();
+
+    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", profile.id);
+    onUpdate(publicUrl);
+    setUploading(false);
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <p className="font-bold text-gray-800 mb-3">アイコン画像</p>
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl text-gray-400">👤</span>
+          )}
+        </div>
+        <div className="flex-1">
+          <label
+            className={`inline-block px-4 py-2 rounded-lg text-sm font-bold cursor-pointer border-2 transition-all ${uploading ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-blue-600 border-blue-500 hover:bg-blue-50"}`}
+          >
+            {uploading ? "アップロード中..." : "画像を変更"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
+          </label>
+          <p className="text-xs text-gray-400 mt-1">JPG / PNG / GIF・2MB以下</p>
+          {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        </div>
+      </div>
     </div>
   );
 }
