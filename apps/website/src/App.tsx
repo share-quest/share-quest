@@ -2122,7 +2122,7 @@ function UsernameEdit({
   const handleSave = async () => {
     if (!profile) return;
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(uname)) {
-      setErr("半角英数字・アンダースコアのみ。3【20文字で入力してください");
+      setErr("半角英数字・アンダースコアのみ。3〜20文字で入力してください");
       return;
     }
     setSaving(true);
@@ -2180,13 +2180,13 @@ function UsernameEdit({
           </div>
           {err && <p className="text-xs text-red-500">{err}</p>}
           <p className="text-xs text-gray-400">
-            半角英数字・アンダースコア3【20文字。プロフィーURLに使われます。
+            半角英数字・アンダースコア3〜20文字。プロフィーURLに使われます。
           </p>
         </div>
       ) : (
         <div className="flex items-center justify-between">
           <p className="font-bold text-gray-800">
-            {profile?.username ? `@${profile.username}` : "ア未設定）"}
+            {profile?.username ? `@${profile.username}` : "（未設定）"}
           </p>
           <button
             onClick={() => {
