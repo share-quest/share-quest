@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "./supabase";
+import type { Profile } from "./supabase";
 import { ChevronLeft, Share2, Eye, X, Plus, Edit3, Check, AlertCircle } from "lucide-react";
 import imgLogo from "./assets/170805.jpg";
 import imgTitle from "./assets/117_20260501195729.png";
@@ -185,7 +187,54 @@ export default function App() {
     [location.pathname],
   );
 
-  const [userRole, setUserRole] = useState("guest");
+  const [userRole, setUserRole] = useState<"guest" | "viewer" | "writer" | "editor">("guest");
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setProfile(data);
+              setUserRole(data.role);
+            }
+          });
+      }
+      setAuthLoading(false);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setProfile(data);
+              setUserRole(data.role);
+            }
+          });
+      } else {
+        setProfile(null);
+        setUserRole("guest");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (authLoading)
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-400">読み込み中...</div>
+    );
   const currentUserId = userRole === "editor" ? "w1" : userRole === "writer" ? "w2" : "user1";
   const [articles, setArticles] = useState(INITIAL_ARTICLES);
   const [fontSize, setFontSize] = useState("medium");
@@ -685,28 +734,26 @@ export default function App() {
         </div>
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <p className="font-bold text-gray-800 mb-3">権限テスト (モック用)</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { id: "guest", label: "未ログイン" },
-              { id: "reader", label: "閲覧者" },
-              { id: "writer", label: "ライター" },
-              { id: "editor", label: "編集長" },
-            ].map((role) => (
-              <button
-                key={role.id}
-                onClick={() => {
-                  setUserRole(role.id);
-                  showToast(`${role.label}に切り替えました`);
-                }}
-                className={`p-2 text-sm font-bold rounded-lg border-2 transition-all ${userRole === role.id ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
-              >
-                {role.label}
-              </button>
-            ))}
+        {userRole !== "guest" && (
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <p className="font-bold text-gray-800 text-sm">
+                {profile?.display_name ?? profile?.email}
+              </p>
+              <p className="text-xs text-gray-500">
+                {userRole === "editor" ? "編集長" : userRole === "writer" ? "ライター" : "閲覧者"}
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+              }}
+              className="px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-lg border border-red-200 hover:bg-red-100"
+            >
+              ログアウト
+            </button>
           </div>
-        </div>
+        )}
         <div className="p-4 flex items-center justify-between">
           <div>
             <p className="font-bold text-gray-800">文字の大きさ</p>
@@ -952,170 +999,126 @@ export default function App() {
     </div>
   );
 
-  // --- LoginView（新規）---
   const LoginView = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const handleLogin = () => {
-      if (!email || !password) {
-        showToast("メールアドレスとパスワードを入力してください");
-        return;
-      }
-      setUserRole("reader");
-      showToast("ログインしました");
-      navigate("home");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const nav = useNavigate();
+
+    const handleLogin = async () => {
+      setLoading(true);
+      setError("");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setError("メールアドレスまたはパスワードが間違っています");
+      else nav("/");
+      setLoading(false);
     };
+
     return (
-      <div className="p-6 space-y-6 animate-in fade-in duration-300 min-h-screen bg-gray-50">
-        <div className="text-center pt-8 pb-4">
-          <LogoIcon className="w-16 h-16 mx-auto mb-3" />
-          <h1 className="text-2xl font-bold text-gray-800">ログイン</h1>
-          <p className="text-sm text-gray-500 mt-1">SHARE Quest へようこそ</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4 max-w-sm mx-auto">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">メールアドレス</label>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-sm">
+          <h1 className="text-2xl font-bold text-center mb-6">ログイン</h1>
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          <div className="space-y-4">
             <input
               type="email"
+              placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@mail.com"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">パスワード</label>
             <input
               type="password"
+              placeholder="パスワード"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <button
-            onClick={handleLogin}
-            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md mt-2"
-          >
-            ログインする
-          </button>
-          <p className="text-xs text-gray-400 text-center">※ このログイン画面はモックです</p>
-        </div>
-        <div className="text-center text-sm text-gray-500 space-y-2">
-          <p>
-            ライターとして参加したい方は{" "}
             <button
-              onClick={() => navigate("register")}
-              className="text-blue-600 font-bold underline hover:text-blue-800"
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
-              ライター登録
+              {loading ? "ログイン中..." : "ログイン"}
+            </button>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-4">
+            ライター登録は
+            <button onClick={() => nav("/register")} className="text-blue-600 underline ml-1">
+              こちら
             </button>
           </p>
-          <button
-            onClick={() => navigate("home")}
-            className="text-gray-400 hover:text-gray-600 text-xs underline"
-          >
-            ← トップへ戻る
-          </button>
         </div>
       </div>
     );
   };
 
-  // --- RegisterView（新規）---
   const RegisterView = () => {
-    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [bio, setBio] = useState("");
-    const handleRegister = () => {
-      if (!name || !email || !password) {
-        showToast("名前・メールアドレス・パスワードは必須です");
-        return;
+    const [displayName, setDisplayName] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const nav = useNavigate();
+
+    const handleRegister = async () => {
+      setLoading(true);
+      setError("");
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } },
+      });
+      if (error) setError(error.message);
+      else {
+        alert("確認メールを送信しました。メールを確認してください。");
+        nav("/login");
       }
-      showToast("登録申請を送信しました。審査後にご連絡します");
-      navigate("home");
+      setLoading(false);
     };
+
     return (
-      <div className="p-6 space-y-6 animate-in fade-in duration-300 min-h-screen bg-gray-50">
-        <div className="text-center pt-8 pb-4">
-          <LogoIcon className="w-16 h-16 mx-auto mb-3" />
-          <h1 className="text-2xl font-bold text-gray-800">ライター登録</h1>
-          <p className="text-sm text-gray-500 mt-1">SHARE Quest で記事を書いてみませんか？</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4 max-w-sm mx-auto">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              表示名 <span className="text-red-500">*</span>
-            </label>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-sm">
+          <h1 className="text-2xl font-bold text-center mb-6">ライター登録</h1>
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          <div className="space-y-4">
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="山田 太郎"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700"
+              placeholder="表示名"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              メールアドレス <span className="text-red-500">*</span>
-            </label>
             <input
               type="email"
+              placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@mail.com"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              パスワード <span className="text-red-500">*</span>
-            </label>
             <input
               type="password"
+              placeholder="パスワード（6文字以上）"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">自己紹介（任意）</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="どんな記事を書きたいですか？"
-              rows={3}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all text-gray-700 resize-none"
-            />
-          </div>
-          <button
-            onClick={handleRegister}
-            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md"
-          >
-            登録を申請する
-          </button>
-          <p className="text-xs text-gray-400 text-center">
-            ※ 登録後、編集長の承認を経てライターとして活動できます
-          </p>
-        </div>
-        <div className="text-center text-sm text-gray-500 space-y-2">
-          <p>
-            すでにアカウントをお持ちの方は{" "}
             <button
-              onClick={() => navigate("login")}
-              className="text-blue-600 font-bold underline hover:text-blue-800"
+              onClick={handleRegister}
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50"
             >
+              {loading ? "登録中..." : "登録する"}
+            </button>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-4">
+            すでにアカウントをお持ちの方は
+            <button onClick={() => nav("/login")} className="text-blue-600 underline ml-1">
               ログイン
             </button>
           </p>
-          <button
-            onClick={() => navigate("home")}
-            className="text-gray-400 hover:text-gray-600 text-xs underline"
-          >
-            ← トップへ戻る
-          </button>
         </div>
       </div>
     );
