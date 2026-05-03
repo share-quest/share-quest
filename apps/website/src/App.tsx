@@ -186,10 +186,6 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (authLoading)
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-400">読み込み中...</div>
-    );
   const currentUserId = profile?.id ?? "";
   const [writers, setWriters] = useState<Profile[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -254,6 +250,10 @@ export default function App() {
   }, [currentView, viewParam]);
 
   const [toastMessage, setToastMessage] = useState("");
+  if (authLoading)
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-400">読み込み中...</div>
+    );
 
   const showToast = (message: string) => {
     setToastMessage(message);
