@@ -102,6 +102,9 @@ const VIEW_TO_PATH: Record<string, string> = {
   writers: "/writers",
   favorites: "/favorites",
   about: "/about",
+  privacy: "/privacy",
+  terms: "/terms",
+  contact: "/contact",
   writerDash: "/writer-dash",
   editorArticles: "/editor-dash/articles",
   editorRecommend: "/editor-dash/recommend",
@@ -117,6 +120,9 @@ function parseLocation(pathname: string): { currentView: string; viewParam: stri
   if (pathname === "/settings") return { currentView: "settings", viewParam: null };
   if (pathname === "/favorites") return { currentView: "favorites", viewParam: null };
   if (pathname === "/about") return { currentView: "about", viewParam: null };
+  if (pathname === "/privacy") return { currentView: "privacy", viewParam: null };
+  if (pathname === "/terms") return { currentView: "terms", viewParam: null };
+  if (pathname === "/contact") return { currentView: "contact", viewParam: null };
   if (pathname === "/writer-dash") return { currentView: "writerDash", viewParam: null };
   if (pathname === "/editor-dash") return { currentView: "editorDash", viewParam: null };
   if (pathname === "/editor-dash/articles")
@@ -1407,13 +1413,51 @@ export default function App() {
           <h3 className="font-bold text-gray-800 border-b-2 border-blue-200 pb-2 mb-3 inline-block">
             SHARE Quest とは
           </h3>
-          <p className="text-sm text-gray-600 leading-loose font-medium">
-            ライターによって書かれる様々なジャンルの記事を通して、「学ぶことの楽しさや面白さ」を届けるウェブサイトです。
+          <p className="text-sm text-gray-600 leading-loose">
+            　「学びの『楽しい！』をつなげる」をモットーに、ライターによって書かれる記事から、「学ぶこと」の楽しさや面白さを届けるコンテンツです。
           </p>
+          <p className="text-sm text-gray-600 leading-loose mt-2">
+            　「勉強」という固い縛りではなく、「気になったことを広げたい」、「学ぶこと自体が楽しい」と思えるようなコンテンツを目指しています。
+          </p>
+        </div>
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+          <h3 className="font-bold text-gray-800 border-b-2 border-blue-200 pb-2 mb-3 inline-block">
+            主な活動
+          </h3>
+          <p className="text-sm text-gray-600 leading-loose">
+            　SHARE
+            Questのライターが、「楽しい」「おもしろい」と感じたことを記事にすることで、その輪を広げています。
+          </p>
+          <p className="text-sm text-gray-600 leading-loose mt-2">
+            　一人でも多くの方に学びの楽しさを伝えられるよう活動しています。
+          </p>
+        </div>
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+          <h3 className="font-bold text-gray-800 border-b-2 border-blue-200 pb-2 mb-3 inline-block">
+            ライター
+          </h3>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>・編集長：あゆむ　-Ayumu-</li>
+            <li>・天馬 楽　-TENBA Gaku-</li>
+            <li>・るーと　-Root-</li>
+            <li>・○○○○</li>
+          </ul>
+          <button
+            onClick={() => navigate("writers")}
+            className="mt-3 text-sm text-blue-500 font-bold underline hover:text-blue-700"
+          >
+            ＞ 編集者一覧へ
+          </button>
+        </div>
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+          <h3 className="font-bold text-gray-800 border-b-2 border-blue-200 pb-2 mb-3 inline-block">
+            協力者
+          </h3>
+          <p className="text-sm text-gray-600">・Noimzip</p>
         </div>
         <button
           onClick={() => navigate("home")}
-          className="w-full py-3 bg-gray-100 font-bold rounded-xl text-gray-600 hover:bg-gray-200 mt-4"
+          className="w-full py-3 bg-gray-100 font-bold rounded-xl text-gray-600 hover:bg-gray-200"
         >
           ホームへ戻る
         </button>
@@ -1579,7 +1623,30 @@ export default function App() {
         {currentView === "editorWriters" && <EditorWritersView />}
         {currentView === "login" && <LoginView />}
         {currentView === "register" && <RegisterView />}
+        {currentView === "privacy" && <PrivacyView />}
+        {currentView === "terms" && <TermsView />}
+        {currentView === "contact" && <ContactView />}
       </main>
+      <footer className="max-w-2xl mx-auto px-4 py-8 border-t border-gray-200 mt-4 text-center text-xs text-gray-400 space-y-2">
+        <div className="flex justify-center gap-6">
+          <button
+            onClick={() => navigate("privacy")}
+            className="hover:text-blue-500 hover:underline"
+          >
+            プライバシーポリシー
+          </button>
+          <button onClick={() => navigate("terms")} className="hover:text-blue-500 hover:underline">
+            利用規約
+          </button>
+          <button
+            onClick={() => navigate("contact")}
+            className="hover:text-blue-500 hover:underline"
+          >
+            お問い合わせ
+          </button>
+        </div>
+        <p>© 2025 SHARE Quest</p>
+      </footer>
       {toastMessage && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-3 text-sm font-bold whitespace-nowrap">
           {toastMessage}
@@ -1970,7 +2037,7 @@ function AvatarUpload({
       .from("avatars")
       .upload(filePath, file, { upsert: true });
     if (uploadError) {
-      setError("アップロードに失敗しました");
+      setError(`アップロードに失敗しました: ${uploadError.message}`);
       setUploading(false);
       return;
     }
@@ -2037,6 +2104,126 @@ function NotFoundView() {
       >
         トップへ戻る
       </button>
+    </div>
+  );
+}
+
+function PrivacyView() {
+  const nav = useNavigate();
+  return (
+    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => nav(-1)}
+          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-gray-800">プライバシーポリシー</h2>
+      </div>
+      <div className="space-y-4 text-sm text-gray-600 leading-loose">
+        <p>
+          SHARE
+          Quest（以下「当サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
+        </p>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">収集する情報</h3>
+          <p>
+            当サービスでは、会員登録時にメールアドレスおよび表示名を収集します。また、アイコン画像をアップロードした場合は画像データを保存します。
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">利用目的</h3>
+          <p>
+            収集した情報は、サービスの提供・改善、および本人確認のために使用します。第三者への提供は行いません。
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">お問い合わせ</h3>
+          <p>
+            プライバシーに関するご質問は{" "}
+            <a href="mailto:share.quest.official@gmail.com" className="text-blue-500 underline">
+              share.quest.official@gmail.com
+            </a>{" "}
+            までご連絡ください。
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TermsView() {
+  const nav = useNavigate();
+  return (
+    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => nav(-1)}
+          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-gray-800">利用規約</h2>
+      </div>
+      <div className="space-y-4 text-sm text-gray-600 leading-loose">
+        <p>
+          SHARE Quest（以下「当サービス」）をご利用いただく前に、以下の利用規約をお読みください。
+        </p>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">禁止事項</h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>他のユーザーへの訹謗中傷・嫌がらせ</li>
+            <li>虚偽の情報の投稿</li>
+            <li>著作権を侵害するコンテンツの投稿</li>
+            <li>その他、当サービスの運営を妨げる行為</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">免責事項</h3>
+          <p>
+            当サービスは、掃載されている記事の正確性・完全性を保証しません。利用者ご自身の判断でご活用ください。
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-800 mb-1">規約の変更</h3>
+          <p>
+            当サービスは、必要に応じて利用規約を変更することがあります。変更後も引き続きご利用いただいた場合、変更後の規約に同意したものとみなします。
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ContactView() {
+  const nav = useNavigate();
+  return (
+    <div className="p-6 space-y-6 animate-in fade-in duration-300 bg-white min-h-screen">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => nav(-1)}
+          className="p-2 bg-white rounded-full shadow-sm border border-gray-200"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h2 className="text-xl font-bold text-gray-800">お問い合わせ</h2>
+      </div>
+      <div className="space-y-4 text-sm text-gray-600 leading-loose">
+        <p>ご質問・ご意見・不具合の報告などは、以下のメールアドレスまでお気軽にご連絡ください。</p>
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 text-center">
+          <p className="text-xs text-gray-400 mb-1">メールアドレス</p>
+          <a
+            href="mailto:share.quest.official@gmail.com"
+            className="text-blue-600 font-bold text-base underline hover:text-blue-800"
+          >
+            share.quest.official@gmail.com
+          </a>
+        </div>
+        <p className="text-xs text-gray-400">
+          ※返信までにお時間をいただく場合があります。あらかじめご了承ください。
+        </p>
+      </div>
     </div>
   );
 }
