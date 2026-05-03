@@ -397,13 +397,17 @@ export default function App() {
             <CustomStarIcon className="w-6 h-6" active={true} /> おすすめの記事
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
-            {published
-              .filter((a) => a.isRecommended)
-              .map((article) => (
-                <div key={article.id} className="min-w-[240px] snap-start">
-                  <ArticleCard article={article} layout="vertical" />
-                </div>
-              ))}
+            {published.filter((a) => a.isRecommended).length === 0 ? (
+              <p className="text-gray-400 text-sm py-4">まだおすすめ記事はありません</p>
+            ) : (
+              published
+                .filter((a) => a.isRecommended)
+                .map((article) => (
+                  <div key={article.id} className="min-w-[240px] snap-start">
+                    <ArticleCard article={article} layout="vertical" />
+                  </div>
+                ))
+            )}
           </div>
         </section>
         <section>
@@ -411,19 +415,23 @@ export default function App() {
             <span className="text-red-500 font-bold text-xl">🔥</span> 人気の記事
           </h2>
           <div className="space-y-3">
-            {published
-              .filter((a) => a.isPopular)
-              .map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+            {published.filter((a) => a.isPopular).length === 0 ? (
+              <p className="text-gray-400 text-sm py-4">まだ人気記事はありません</p>
+            ) : (
+              published
+                .filter((a) => a.isPopular)
+                .map((article) => <ArticleCard key={article.id} article={article} />)
+            )}
           </div>
         </section>
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">記事一覧</h2>
           <div className="space-y-3">
-            {published.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+            {published.length === 0 ? (
+              <p className="text-gray-400 text-sm py-4">まだ公開記事はありません</p>
+            ) : (
+              published.map((article) => <ArticleCard key={article.id} article={article} />)
+            )}
           </div>
         </section>
       </div>
@@ -876,7 +884,14 @@ export default function App() {
         />
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {userRole !== "guest" && <DisplayNameEdit profile={profile} setProfile={setProfile} />}
+        {userRole !== "guest" && (
+          <DisplayNameEdit
+            profile={profile}
+            setProfile={setProfile}
+            setWriters={setWriters}
+            showToast={showToast}
+          />
+        )}
         {userRole !== "guest" && (
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div>
@@ -1639,26 +1654,30 @@ function EditorArticlesView() {
         <p className="text-center text-gray-400 py-8">読み込み中...</p>
       ) : (
         <div className="space-y-3">
-          {articles.map((a) => (
-            <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 text-sm truncate">{a.title}</p>
-                  <span
-                    className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor(a.status)}`}
+          {articles.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-8">記事がありません</p>
+          ) : (
+            articles.map((a) => (
+              <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 text-sm truncate">{a.title}</p>
+                    <span
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor(a.status)}`}
+                    >
+                      {statusLabel(a.status)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(a.id)}
+                    className="p-2 text-red-400 hover:bg-red-50 rounded-lg flex-shrink-0"
                   >
-                    {statusLabel(a.status)}
-                  </span>
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDelete(a.id)}
-                  className="p-2 text-red-400 hover:bg-red-50 rounded-lg flex-shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>
@@ -1853,9 +1872,13 @@ function EditorWritersView() {
 function DisplayNameEdit({
   profile,
   setProfile,
+  setWriters,
+  showToast,
 }: {
   profile: Profile | null;
   setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setWriters: React.Dispatch<React.SetStateAction<Profile[]>>;
+  showToast: (msg: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(profile?.display_name ?? "");
@@ -1870,7 +1893,9 @@ function DisplayNameEdit({
       .eq("id", profile.id);
     if (!error) {
       setProfile((p) => (p ? { ...p, display_name: name } : p));
+      setWriters((ws) => ws.map((w) => (w.id === profile.id ? { ...w, display_name: name } : w)));
       setEditing(false);
+      showToast("表示名を更新しました");
     }
     setSaving(false);
   };
