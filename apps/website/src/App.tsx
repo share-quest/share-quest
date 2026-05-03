@@ -85,12 +85,12 @@ const CustomSettingsIcon = ({
 const MOCK_TAGS = ["理科", "歴史", "数学", "国語", "英語", "プログラミング", "雑学"];
 
 const THUMBNAIL_COLORS = [
-  { id: "blue",   label: "ブルー",   bg: "bg-blue-100",   text: "text-blue-400"   },
-  { id: "green",  label: "グリーン", bg: "bg-green-100",  text: "text-green-400"  },
+  { id: "blue", label: "ブルー", bg: "bg-blue-100", text: "text-blue-400" },
+  { id: "green", label: "グリーン", bg: "bg-green-100", text: "text-green-400" },
   { id: "purple", label: "パープル", bg: "bg-purple-100", text: "text-purple-400" },
   { id: "orange", label: "オレンジ", bg: "bg-orange-100", text: "text-orange-400" },
-  { id: "pink",   label: "ピンク",   bg: "bg-pink-100",   text: "text-pink-400"   },
-  { id: "teal",   label: "ティール", bg: "bg-teal-100",   text: "text-teal-400"   },
+  { id: "pink", label: "ピンク", bg: "bg-pink-100", text: "text-pink-400" },
+  { id: "teal", label: "ティール", bg: "bg-teal-100", text: "text-teal-400" },
 ];
 const getThumbnailColor = (colorId: string | null) =>
   THUMBNAIL_COLORS.find((c) => c.id === colorId) ?? THUMBNAIL_COLORS[0];
@@ -421,6 +421,13 @@ export default function App() {
   // --- ArticleView ---
   const ArticleView = () => {
     const article = articles.find((a) => a.id === viewParam);
+    useEffect(() => {
+      if (!article) return;
+      void supabase
+        .from("articles")
+        .update({ views: article.views + 1 })
+        .eq("id", article.id);
+    }, [article?.id]);
     if (!article) return <div className="p-10 text-center">記事が見つかりません</div>;
     const writer = writers.find((w) => w.id === article.writerId);
     const isFav = favorites.includes(article.id);
@@ -480,9 +487,15 @@ export default function App() {
             >
               <div className="flex items-center gap-3">
                 <div className="bg-gray-100 p-2 rounded-full border border-gray-200">
-                  {writer.avatar_url
-                    ? <img src={writer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-                    : <CustomUserIcon className="w-8 h-8" />}
+                  {writer.avatar_url ? (
+                    <img
+                      src={writer.avatar_url}
+                      className="w-8 h-8 rounded-full object-cover"
+                      alt=""
+                    />
+                  ) : (
+                    <CustomUserIcon className="w-8 h-8" />
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 font-bold mb-0.5">この記事を書いた人</p>
@@ -494,28 +507,45 @@ export default function App() {
               </span>
             </div>
           )}
-          <div className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}>
-            {article.content
-              ? article.content
-              : <span className="text-gray-400 italic">本文はまだ書かれていません</span>}
+          <div
+            className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}
+          >
+            {article.content ? (
+              article.content
+            ) : (
+              <span className="text-gray-400 italic">本文はまだ書かれていません</span>
+            )}
           </div>
           <div className="border-t pt-8 pb-4 space-y-4">
             <p className="font-bold text-gray-800 text-center">この記事を共有</p>
             <div className="flex justify-center gap-6">
               <button
-                onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank")}
+                onClick={() =>
+                  window.open(
+                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`,
+                    "_blank",
+                  )
+                }
                 className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center hover:opacity-80 shadow-md"
               >
                 <span className="font-bold text-2xl">X</span>
               </button>
               <button
-                onClick={() => window.open(`https://line.me/R/msg/text/?${encodeURIComponent(article.title + " " + articleUrl)}`, "_blank")}
+                onClick={() =>
+                  window.open(
+                    `https://line.me/R/msg/text/?${encodeURIComponent(article.title + " " + articleUrl)}`,
+                    "_blank",
+                  )
+                }
                 className="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center hover:opacity-80 shadow-md"
               >
                 <span className="font-bold text-sm">LINE</span>
               </button>
               <button
-                onClick={() => { void navigator.clipboard.writeText(articleUrl); showToast("リンクをコピーしました"); }}
+                onClick={() => {
+                  void navigator.clipboard.writeText(articleUrl);
+                  showToast("リンクをコピーしました");
+                }}
                 className="w-14 h-14 bg-white border-2 border-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-sm"
               >
                 <Share2 className="w-6 h-6" />
@@ -534,24 +564,31 @@ export default function App() {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [selectedWriterIds, setSelectedWriterIds] = useState<string[]>([]);
 
-    const allTags = Array.from(new Set(
-      articles.flatMap((a) => a.tags ?? [])
-    )).filter(Boolean);
+    const allTags = Array.from(new Set(articles.flatMap((a) => a.tags ?? []))).filter(Boolean);
     const displayTags = allTags.length > 0 ? allTags : MOCK_TAGS;
 
     const results = articles.filter((a) => {
       if (a.status !== "published") return false;
-      if (keyword && !a.title.toLowerCase().includes(keyword.toLowerCase()) &&
-          !(a.content ?? "").toLowerCase().includes(keyword.toLowerCase())) return false;
-      if (selectedTags.length > 0 && !selectedTags.some((t) => (a.tags ?? []).includes(t))) return false;
+      if (
+        keyword &&
+        !a.title.toLowerCase().includes(keyword.toLowerCase()) &&
+        !(a.content ?? "").toLowerCase().includes(keyword.toLowerCase())
+      )
+        return false;
+      if (selectedTags.length > 0 && !selectedTags.some((t) => (a.tags ?? []).includes(t)))
+        return false;
       if (selectedWriterIds.length > 0 && !selectedWriterIds.includes(a.writerId)) return false;
       return true;
     });
 
     const toggleTag = (tag: string) =>
-      setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
+      setSelectedTags((prev) =>
+        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+      );
     const toggleWriter = (id: string) =>
-      setSelectedWriterIds((prev) => prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]);
+      setSelectedWriterIds((prev) =>
+        prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id],
+      );
     const hasFilter = keyword || selectedTags.length > 0 || selectedWriterIds.length > 0;
 
     return (
@@ -568,7 +605,10 @@ export default function App() {
             <CustomSearchIcon className="w-7 h-7" />
           </div>
           {keyword && (
-            <button onClick={() => setKeyword("")} className="absolute right-3 top-4 text-gray-400 hover:text-gray-600">
+            <button
+              onClick={() => setKeyword("")}
+              className="absolute right-3 top-4 text-gray-400 hover:text-gray-600"
+            >
               <X className="w-5 h-5" />
             </button>
           )}
@@ -596,10 +636,14 @@ export default function App() {
                 onClick={() => toggleWriter(w.id)}
                 className={`flex items-center gap-2 p-2 border rounded-lg text-left transition-colors ${selectedWriterIds.includes(w.id) ? "bg-blue-50 border-blue-400" : "bg-gray-50 border-gray-200 hover:bg-blue-50 hover:border-blue-200"}`}
               >
-                {w.avatar_url
-                  ? <img src={w.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
-                  : <CustomUserIcon className="w-6 h-6" />}
-                <span className="text-sm font-bold text-gray-700 truncate">{w.display_name ?? w.email}</span>
+                {w.avatar_url ? (
+                  <img src={w.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
+                ) : (
+                  <CustomUserIcon className="w-6 h-6" />
+                )}
+                <span className="text-sm font-bold text-gray-700 truncate">
+                  {w.display_name ?? w.email}
+                </span>
               </button>
             ))}
           </div>
@@ -609,17 +653,24 @@ export default function App() {
             <div className="flex items-center justify-between mb-3">
               <p className="font-bold text-gray-700">検索結果 ({results.length}件)</p>
               <button
-                onClick={() => { setKeyword(""); setSelectedTags([]); setSelectedWriterIds([]); }}
+                onClick={() => {
+                  setKeyword("");
+                  setSelectedTags([]);
+                  setSelectedWriterIds([]);
+                }}
                 className="text-xs text-gray-500 underline"
               >
                 フィルターをリセット
               </button>
             </div>
             <div className="space-y-3">
-              {results.length === 0
-                ? <p className="text-gray-500 text-center py-8 bg-white rounded-xl border">該当する記事が見つかりませんでした</p>
-                : results.map((a) => <ArticleCard key={a.id} article={a} />)
-              }
+              {results.length === 0 ? (
+                <p className="text-gray-500 text-center py-8 bg-white rounded-xl border">
+                  該当する記事が見つかりませんでした
+                </p>
+              ) : (
+                results.map((a) => <ArticleCard key={a.id} article={a} />)
+              )}
             </div>
           </div>
         )}
@@ -638,13 +689,17 @@ export default function App() {
       >
         <div className="flex items-center gap-4">
           <div className="bg-gray-100 rounded-full border border-gray-200 overflow-hidden w-12 h-12 flex items-center justify-center">
-            {w.avatar_url
-              ? <img src={w.avatar_url} className="w-12 h-12 object-cover" alt="" />
-              : <CustomUserIcon className="w-8 h-8" />}
+            {w.avatar_url ? (
+              <img src={w.avatar_url} className="w-12 h-12 object-cover" alt="" />
+            ) : (
+              <CustomUserIcon className="w-8 h-8" />
+            )}
           </div>
           <div>
             <p className="font-bold text-gray-800 text-lg">{w.display_name ?? w.email}</p>
-            <p className="text-xs font-bold text-blue-500">{w.role === "editor" ? "編集長" : "ライター"}</p>
+            <p className="text-xs font-bold text-blue-500">
+              {w.role === "editor" ? "編集長" : "ライター"}
+            </p>
           </div>
         </div>
         <span className="text-sm font-bold text-gray-500 flex items-center">
@@ -661,16 +716,20 @@ export default function App() {
           <section>
             <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              {editors.map((w) => <WriterRow key={w.id} w={w} />)}
+              {editors.map((w) => (
+                <WriterRow key={w.id} w={w} />
+              ))}
             </div>
           </section>
         )}
         <section>
           <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">ライター</h3>
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            {writerList.length > 0
-              ? writerList.map((w) => <WriterRow key={w.id} w={w} />)
-              : <p className="text-sm text-gray-400 text-center py-6">ライターがまだいません</p>}
+            {writerList.length > 0 ? (
+              writerList.map((w) => <WriterRow key={w.id} w={w} />)
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">ライターがまだいません</p>
+            )}
           </div>
         </section>
       </div>
@@ -680,7 +739,8 @@ export default function App() {
   // --- ProfileView ---
   const ProfileView = () => {
     const writer = writers.find((w) => w.id === viewParam);
-    if (!writer) return <div className="p-10 text-center text-gray-500">プロフィールが見つかりません</div>;
+    if (!writer)
+      return <div className="p-10 text-center text-gray-500">プロフィールが見つかりません</div>;
     const writerArticles = articles.filter(
       (a) => a.writerId === writer.id && a.status === "published",
     );
@@ -695,9 +755,11 @@ export default function App() {
             <span className="text-xs font-bold">戻る</span>
           </button>
           <div className="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
-            {writer.avatar_url
-              ? <img src={writer.avatar_url} className="w-24 h-24 object-cover" alt="" />
-              : <CustomUserIcon className="w-16 h-16" />}
+            {writer.avatar_url ? (
+              <img src={writer.avatar_url} className="w-24 h-24 object-cover" alt="" />
+            ) : (
+              <CustomUserIcon className="w-16 h-16" />
+            )}
           </div>
           <h2 className="text-2xl font-bold mb-1">{writer.display_name ?? writer.email}</h2>
           <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-sm">
@@ -809,9 +871,7 @@ export default function App() {
         />
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {userRole !== "guest" && (
-          <DisplayNameEdit profile={profile} setProfile={setProfile} />
-        )}
+        {userRole !== "guest" && <DisplayNameEdit profile={profile} setProfile={setProfile} />}
         {userRole !== "guest" && (
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div>
@@ -913,55 +973,99 @@ export default function App() {
     };
 
     const handleSave = async () => {
-      if (!formTitle.trim()) { showToast("タイトルを入力してください"); return; }
+      if (!formTitle.trim()) {
+        showToast("タイトルを入力してください");
+        return;
+      }
       setSaving(true);
-      const tagsArray = formTags.split(",").map((t) => t.trim()).filter(Boolean);
+      const tagsArray = formTags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
       if (editingArticle) {
-        const { error } = await supabase.from("articles").update({
-          title: formTitle,
-          content: formContent,
-          tags: tagsArray,
-          thumbnail_color: formColor,
-        }).eq("id", editingArticle.id);
+        const { error } = await supabase
+          .from("articles")
+          .update({
+            title: formTitle,
+            content: formContent,
+            tags: tagsArray,
+            thumbnail_color: formColor,
+          })
+          .eq("id", editingArticle.id);
         if (!error) {
-          setArticles(articles.map((a) => a.id === editingArticle.id
-            ? { ...a, title: formTitle, content: formContent, tags: tagsArray, thumbnailColor: formColor }
-            : a));
+          setArticles(
+            articles.map((a) =>
+              a.id === editingArticle.id
+                ? {
+                    ...a,
+                    title: formTitle,
+                    content: formContent,
+                    tags: tagsArray,
+                    thumbnailColor: formColor,
+                  }
+                : a,
+            ),
+          );
           showToast("記事を更新しました");
           setShowModal(false);
-        } else { showToast("エラーが発生しました"); }
+        } else {
+          showToast("エラーが発生しました");
+        }
       } else {
-        const { data, error } = await supabase.from("articles").insert({
-          title: formTitle,
-          content: formContent,
-          tags: tagsArray,
-          thumbnail_color: formColor,
-          writer_id: currentUserId,
-          status: "draft",
-          views: 0, likes: 0,
-          is_recommended: false, is_popular: false,
-        }).select().single();
+        const { data, error } = await supabase
+          .from("articles")
+          .insert({
+            title: formTitle,
+            content: formContent,
+            tags: tagsArray,
+            thumbnail_color: formColor,
+            writer_id: currentUserId,
+            status: "draft",
+            views: 0,
+            likes: 0,
+            is_recommended: false,
+            is_popular: false,
+          })
+          .select()
+          .single();
         if (!error && data) {
-          setArticles([...articles, {
-            id: data.id, title: data.title, thumbnail: "",
-            thumbnailColor: formColor,
-            writerId: data.writer_id, views: 0, likes: 0,
-            tags: tagsArray, isRecommended: false, isPopular: false,
-            status: "draft", content: formContent,
-          }]);
+          setArticles([
+            ...articles,
+            {
+              id: data.id,
+              title: data.title,
+              thumbnail: "",
+              thumbnailColor: formColor,
+              writerId: data.writer_id,
+              views: 0,
+              likes: 0,
+              tags: tagsArray,
+              isRecommended: false,
+              isPopular: false,
+              status: "draft",
+              content: formContent,
+            },
+          ]);
           showToast("下書きを作成しました");
           setShowModal(false);
-        } else { showToast("エラーが発生しました"); }
+        } else {
+          showToast("エラーが発生しました");
+        }
       }
       setSaving(false);
     };
 
     const handleSubmit = async (article: Article) => {
-      const { error } = await supabase.from("articles").update({ status: "pending" }).eq("id", article.id);
+      const { error } = await supabase
+        .from("articles")
+        .update({ status: "pending" })
+        .eq("id", article.id);
       if (!error) {
-        setArticles(articles.map((a) => a.id === article.id ? { ...a, status: "pending" } : a));
+        setArticles(articles.map((a) => (a.id === article.id ? { ...a, status: "pending" } : a)));
         showToast("投稿申請しました");
-      } else { showToast("エラーが発生しました"); }
+      } else {
+        showToast("エラーが発生しました");
+      }
     };
 
     const handleDelete = async (article: Article) => {
@@ -970,19 +1074,38 @@ export default function App() {
       if (!error) {
         setArticles(articles.filter((a) => a.id !== article.id));
         showToast("記事を削除しました");
-      } else { showToast("エラーが発生しました"); }
+      } else {
+        showToast("エラーが発生しました");
+      }
     };
 
     const statusLabel = (status: string) => {
-      if (status === "published") return <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold shrink-0">公開中</span>;
-      if (status === "pending")  return <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold shrink-0">申請中</span>;
-      return <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold shrink-0">下書き</span>;
+      if (status === "published")
+        return (
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold shrink-0">
+            公開中
+          </span>
+        );
+      if (status === "pending")
+        return (
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold shrink-0">
+            申請中
+          </span>
+        );
+      return (
+        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold shrink-0">
+          下書き
+        </span>
+      );
     };
 
     return (
       <div className="p-4 space-y-6 animate-in slide-in-from-right-8 duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate("settings")} className="p-2 bg-white rounded-full shadow-sm">
+          <button
+            onClick={() => navigate("settings")}
+            className="p-2 bg-white rounded-full shadow-sm"
+          >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h2 className="text-xl font-bold text-gray-800">ライター管理</h2>
@@ -1008,13 +1131,20 @@ export default function App() {
             {myArticles.map((article) => {
               const color = getThumbnailColor(article.thumbnailColor ?? null);
               return (
-                <div key={article.id} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex gap-3">
-                  <div className={`${color.bg} w-14 h-14 rounded-lg flex items-center justify-center shrink-0`}>
+                <div
+                  key={article.id}
+                  className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex gap-3"
+                >
+                  <div
+                    className={`${color.bg} w-14 h-14 rounded-lg flex items-center justify-center shrink-0`}
+                  >
                     <LogoIcon className="w-8 h-8 opacity-40" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-bold text-gray-800 text-sm pr-2 truncate">{article.title}</h4>
+                      <h4 className="font-bold text-gray-800 text-sm pr-2 truncate">
+                        {article.title}
+                      </h4>
                       {statusLabel(article.status)}
                     </div>
                     <div className="flex gap-2 mt-2">
@@ -1053,14 +1183,21 @@ export default function App() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
             <div className="bg-white rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold">{editingArticle ? "記事を編集" : "新規記事を作成"}</h3>
-                <button onClick={() => setShowModal(false)} className="p-2 rounded-full hover:bg-gray-100">
+                <h3 className="text-lg font-bold">
+                  {editingArticle ? "記事を編集" : "新規記事を作成"}
+                </h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-2 rounded-full hover:bg-gray-100"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               {/* タイトル */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">タイトル <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  タイトル <span className="text-red-500">*</span>
+                </label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="記事のタイトルを入力"
@@ -1070,7 +1207,9 @@ export default function App() {
               </div>
               {/* サムネイルカラー */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">サムネイルカラー</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  サムネイルカラー
+                </label>
                 <div className="flex gap-2 flex-wrap">
                   {THUMBNAIL_COLORS.map((color) => (
                     <button
@@ -1083,11 +1222,15 @@ export default function App() {
                     />
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 mt-1">選択中: {getThumbnailColor(formColor).label}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  選択中: {getThumbnailColor(formColor).label}
+                </p>
               </div>
               {/* タグ */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">タグ（カンマ区切り）</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  タグ（カンマ区切り）
+                </label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="例: 理科, 歴史, プログラミング"
@@ -1716,7 +1859,10 @@ function DisplayNameEdit({
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ display_name: name }).eq("id", profile.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: name })
+      .eq("id", profile.id);
     if (!error) {
       setProfile((p) => (p ? { ...p, display_name: name } : p));
       setEditing(false);
@@ -1741,14 +1887,23 @@ function DisplayNameEdit({
           >
             {saving ? "…" : "保存"}
           </button>
-          <button onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg">
+          <button
+            onClick={() => setEditing(false)}
+            className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg"
+          >
             取消
           </button>
         </div>
       ) : (
         <div className="flex items-center justify-between">
           <p className="font-bold text-gray-800">{profile?.display_name ?? "（未設定）"}</p>
-          <button onClick={() => { setName(profile?.display_name ?? ""); setEditing(true); }} className="text-xs text-blue-500 font-bold underline">
+          <button
+            onClick={() => {
+              setName(profile?.display_name ?? "");
+              setEditing(true);
+            }}
+            className="text-xs text-blue-500 font-bold underline"
+          >
             編集
           </button>
         </div>
