@@ -6,6 +6,7 @@ packages:
 catalog:
   "@supabase/supabase-js": ^2.105.1
   "@types/node": ^24
+  tslib: ^2.8.1
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vite-plus: latest
