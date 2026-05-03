@@ -226,7 +226,17 @@ export default function App() {
       });
   }, []);
   const [fontSize, setFontSize] = useState("medium");
-  const [favorites, setFavorites] = useState(["a1"]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (userRole === "guest") return;
+    void supabase
+      .from("favorites")
+      .select("article_id")
+      .then(({ data }) => {
+        if (data) setFavorites(data.map((f) => f.article_id));
+      });
+  }, [userRole]);
   const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (message: string) => {
@@ -252,9 +262,11 @@ export default function App() {
       return;
     }
     if (favorites.includes(articleId)) {
+      void supabase.from("favorites").delete().eq("article_id", articleId);
       setFavorites(favorites.filter((id) => id !== articleId));
       showToast("お気に入りから削除しました");
     } else {
+      void supabase.from("favorites").insert({ article_id: articleId });
       setFavorites([...favorites, articleId]);
       showToast("お気に入りに登録しました");
     }
