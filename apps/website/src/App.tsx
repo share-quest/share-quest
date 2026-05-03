@@ -919,12 +919,20 @@ export default function App() {
       )}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {userRole !== "guest" && (
-          <DisplayNameEdit
-            profile={profile}
-            setProfile={setProfile}
-            setWriters={setWriters}
-            showToast={showToast}
-          />
+          <>
+            <DisplayNameEdit
+              profile={profile}
+              setProfile={setProfile}
+              setWriters={setWriters}
+              showToast={showToast}
+            />
+            <UsernameEdit
+              profile={profile}
+              setProfile={setProfile}
+              setWriters={setWriters}
+              showToast={showToast}
+            />
+          </>
         )}
         {userRole !== "guest" && (
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -2096,6 +2104,104 @@ function DisplayNameEdit({
   );
 }
 
+function UsernameEdit({
+  profile,
+  setProfile,
+  setWriters,
+  showToast,
+}: {
+  profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setWriters: React.Dispatch<React.SetStateAction<Profile[]>>;
+  showToast: (msg: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [uname, setUname] = useState(profile?.username ?? "");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const handleSave = async () => {
+    if (!profile) return;
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(uname)) {
+      setErr("半角英数字・アンダースコアのみ。3【20文字で入力してください");
+      return;
+    }
+    setSaving(true);
+    setErr("");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username: uname })
+      .eq("id", profile.id);
+    if (error) {
+      setErr("このユーザー名はすでに使われています");
+    } else {
+      setProfile((p) => (p ? { ...p, username: uname } : p));
+      setWriters((ws) => ws.map((w) => (w.id === profile.id ? { ...w, username: uname } : w)));
+      setEditing(false);
+      showToast("ユーザー名を更新しました");
+    }
+    setSaving(false);
+  };
+  return (
+    <div className="p-4 border-b border-gray-100">
+      <p className="text-xs text-gray-500 mb-1 font-bold">
+        ユーザー名 <span className="text-gray-400 font-normal">(@username)</span>
+      </p>
+      {editing ? (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <div className="flex-1 flex items-center border border-gray-300 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-400">
+              <span className="text-gray-400 text-sm mr-1">@</span>
+              <input
+                className="flex-1 text-sm focus:outline-none"
+                value={uname}
+                onChange={(e) => {
+                  setUname(e.target.value);
+                  setErr("");
+                }}
+                placeholder="例: taro_yamada"
+              />
+            </div>
+            <button
+              onClick={() => void handleSave()}
+              disabled={saving}
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? "…" : "保存"}
+            </button>
+            <button
+              onClick={() => {
+                setEditing(false);
+                setErr("");
+              }}
+              className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg"
+            >
+              取消
+            </button>
+          </div>
+          {err && <p className="text-xs text-red-500">{err}</p>}
+          <p className="text-xs text-gray-400">
+            半角英数字・アンダースコア3【20文字。プロフィーURLに使われます。
+          </p>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-gray-800">
+            {profile?.username ? `@${profile.username}` : "ア未設定）"}
+          </p>
+          <button
+            onClick={() => {
+              setUname(profile?.username ?? "");
+              setEditing(true);
+            }}
+            className="text-xs text-blue-500 font-bold underline"
+          >
+            編集
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 function AvatarUpload({
   profile,
   onUpdate,
