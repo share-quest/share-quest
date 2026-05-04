@@ -8,6 +8,7 @@ type Article = {
   id: string;
   title: string;
   thumbnail: string;
+  thumbnailUrl: string | null;
   thumbnailColor: string | null;
   writerId: string;
   views: number;
@@ -222,6 +223,7 @@ export default function App() {
               id: a.id,
               title: a.title,
               thumbnail: a.thumbnail,
+              thumbnailUrl: a.thumbnail_url ?? null,
               thumbnailColor: a.thumbnail_color ?? "blue",
               writerId: a.writer_id,
               views: a.views,
@@ -394,11 +396,23 @@ export default function App() {
       >
         {(() => {
           const color = getThumbnailColor(article.thumbnailColor ?? null);
-          return (
+          return article.thumbnailUrl ? (
             <div
-              className={`${color.bg} ${layout === "horizontal" ? "w-1/3 min-w-[110px]" : "w-full h-32"} flex items-center justify-center`}
+              className={`${layout === "horizontal" ? "w-1/3 min-w-[110px] h-full" : "w-full"} overflow-hidden`}
+              style={layout !== "horizontal" ? { aspectRatio: "16/9" } : {}}
             >
-              <LogoIcon className={`w-10 h-10 opacity-40`} />
+              <img
+                src={article.thumbnailUrl}
+                alt={article.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div
+              className={`${color.bg} ${layout === "horizontal" ? "w-1/3 min-w-[110px]" : "w-full"} flex items-center justify-center`}
+              style={layout !== "horizontal" ? { aspectRatio: "16/9" } : {}}
+            >
+              <LogoIcon className="w-10 h-10 opacity-40" />
             </div>
           );
         })()}
@@ -501,9 +515,22 @@ export default function App() {
             <span className="text-sm font-bold text-gray-600">戻る</span>
           </button>
         </div>
-        <div className={`${color.bg} w-full h-48 flex items-center justify-center`}>
-          <LogoIcon className="w-20 h-20 opacity-20" />
-        </div>
+        {article.thumbnailUrl ? (
+          <div className="w-full" style={{ aspectRatio: "16/9" }}>
+            <img
+              src={article.thumbnailUrl}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div
+            className={`${color.bg} w-full flex items-center justify-center`}
+            style={{ aspectRatio: "16/9" }}
+          >
+            <LogoIcon className="w-20 h-20 opacity-20" />
+          </div>
+        )}
         <div className="p-4 space-y-5">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{article.title}</h1>
           {article.summary && (
@@ -1165,6 +1192,33 @@ export default function App() {
     const [tagInput, setTagInput] = useState("");
     const [saving, setSaving] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
+      editingArticle?.thumbnailUrl ?? null,
+    );
+    const [thumbnailUploading, setThumbnailUploading] = useState(false);
+
+    const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        showToast("10MB以下の画像を選択してください");
+        return;
+      }
+      setThumbnailUploading(true);
+      const ext = file.name.split(".").pop();
+      const fileName = `${currentUserId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("thumbnails")
+        .upload(fileName, file, { upsert: true });
+      if (!error) {
+        const { data } = supabase.storage.from("thumbnails").getPublicUrl(fileName);
+        setThumbnailUrl(data.publicUrl);
+        showToast("画像をアップロードしました");
+      } else {
+        showToast("アップロードに失敗しました");
+      }
+      setThumbnailUploading(false);
+    };
 
     const addTag = (val: string) => {
       const newTags = val
@@ -1185,13 +1239,26 @@ export default function App() {
       if (editingArticle) {
         const { error } = await supabase
           .from("articles")
-          .update({ title: formTitle, content: formContent, tags, thumbnail_color: formColor })
+          .update({
+            title: formTitle,
+            content: formContent,
+            tags,
+            thumbnail_color: formColor,
+            thumbnail_url: thumbnailUrl,
+          })
           .eq("id", editingArticle.id);
         if (!error) {
           setArticles(
             articles.map((a) =>
               a.id === editingArticle.id
-                ? { ...a, title: formTitle, content: formContent, tags, thumbnailColor: formColor }
+                ? {
+                    ...a,
+                    title: formTitle,
+                    content: formContent,
+                    tags,
+                    thumbnailColor: formColor,
+                    thumbnailUrl: thumbnailUrl,
+                  }
                 : a,
             ),
           );
@@ -1208,6 +1275,7 @@ export default function App() {
             content: formContent,
             tags,
             thumbnail_color: formColor,
+            thumbnail_url: thumbnailUrl,
             writer_id: currentUserId,
             status: "draft",
             views: 0,
@@ -1224,7 +1292,9 @@ export default function App() {
               id: data.id,
               title: data.title,
               thumbnail: "",
+              thumbnailUrl: null,
               thumbnailColor: formColor,
+              thumbnailUrl: thumbnailUrl,
               writerId: data.writer_id,
               views: 0,
               likes: 0,
@@ -1330,6 +1400,49 @@ export default function App() {
                   <p className="text-xs text-gray-400 mt-1">
                     選択中: {getThumbnailColor(formColor).label}
                   </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    サムネイル画像{" "}
+                    <span className="text-gray-400 font-normal text-xs">(推奨: 1920×1080px)</span>
+                  </label>
+                  {thumbnailUrl && (
+                    <div
+                      className="mb-2 rounded-xl overflow-hidden border border-gray-200"
+                      style={{ aspectRatio: "16/9" }}
+                    >
+                      <img
+                        src={thumbnailUrl}
+                        alt="thumbnail"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <label className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-200 cursor-pointer border border-gray-200">
+                      {thumbnailUploading
+                        ? "アップロード中..."
+                        : thumbnailUrl
+                          ? "画像を変更"
+                          : "画像をアップロード"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => void handleThumbnailUpload(e)}
+                        disabled={thumbnailUploading}
+                      />
+                    </label>
+                    {thumbnailUrl && (
+                      <button
+                        onClick={() => setThumbnailUrl(null)}
+                        className="text-sm text-red-500 hover:text-red-700"
+                      >
+                        削除
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">JPG / PNG · 10MB以下</p>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">タグ</label>
@@ -1807,6 +1920,7 @@ function EditorArticlesView() {
               id: a.id,
               title: a.title,
               thumbnail: a.thumbnail,
+              thumbnailUrl: a.thumbnail_url ?? null,
               thumbnailColor: a.thumbnail_color ?? "blue",
               writerId: a.writer_id,
               views: a.views,
@@ -1896,6 +2010,7 @@ function EditorRecommendView() {
               id: a.id,
               title: a.title,
               thumbnail: a.thumbnail,
+              thumbnailUrl: a.thumbnail_url ?? null,
               thumbnailColor: a.thumbnail_color ?? "blue",
               writerId: a.writer_id,
               views: a.views,
