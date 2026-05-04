@@ -1692,7 +1692,6 @@ export default function App() {
   // --- ヘッダー非表示判定 ---
   const hideHeader = [
     "article",
-    "about",
     "writerDash",
     "editorDash",
     "editorArticles",
@@ -2347,34 +2346,35 @@ function PrivacyView() {
     },
   ];
   return (
-    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
+    <div className="animate-in fade-in duration-300 min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-blue-600 rounded-2xl p-6 mb-6 text-white">
           <button
             onClick={() => nav(-1)}
-            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
+            className="flex items-center gap-1 text-blue-100 hover:text-white text-sm mb-3"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
+            戻る
           </button>
-          <h2 className="text-xl font-bold text-gray-800">プライバシーポリシー</h2>
+          <h2 className="text-2xl font-bold">プライバシーポリシー</h2>
+          <p className="text-blue-100 text-xs mt-1">最終更新日：2026年5月</p>
         </div>
-        <p className="text-xs text-gray-400 mb-6">最終更新日：2026年5月</p>
         <div className="space-y-5 text-sm text-gray-600 leading-relaxed">
           <p>
             SHARE
             Quest（以下「当サービス」）は、ユーザーの個人情報を適切に管理・保護することを最優先に考えています。
           </p>
           {sections.map((s) => (
-            <div key={s.title} className="border-l-4 border-blue-200 pl-4">
-              <h3 className="font-bold text-gray-800 mb-1">{s.title}</h3>
+            <div key={s.title} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <h3 className="font-bold text-gray-800 mb-2 text-sm">{s.title}</h3>
               {s.items ? (
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
                   {s.items.map((i) => (
                     <li key={i}>{i}</li>
                   ))}
                 </ul>
               ) : (
-                <p>{s.text}</p>
+                <p className="text-gray-600">{s.text}</p>
               )}
             </div>
           ))}
@@ -2433,34 +2433,35 @@ function TermsView() {
     },
   ];
   return (
-    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
+    <div className="animate-in fade-in duration-300 min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-purple-600 rounded-2xl p-6 mb-6 text-white">
           <button
             onClick={() => nav(-1)}
-            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
+            className="flex items-center gap-1 text-purple-100 hover:text-white text-sm mb-3"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
+            戻る
           </button>
-          <h2 className="text-xl font-bold text-gray-800">利用規約</h2>
+          <h2 className="text-2xl font-bold">利用規約</h2>
+          <p className="text-purple-100 text-xs mt-1">最終更新日：2026年5月</p>
         </div>
-        <p className="text-xs text-gray-400 mb-6">最終更新日：2026年5月</p>
-        <div className="space-y-5 text-sm text-gray-600 leading-relaxed">
+        <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
           <p>
             SHARE
             Quest（以下「当サービス」）をご利用いただく前に、以下の利用規約をお読みください。サービスをご利用いただくことで、本規約に同意したものとみなします。
           </p>
           {sections.map((s) => (
-            <div key={s.title} className="border-l-4 border-blue-200 pl-4">
-              <h3 className="font-bold text-gray-800 mb-1">{s.title}</h3>
+            <div key={s.title} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <h3 className="font-bold text-gray-800 mb-2 text-sm">{s.title}</h3>
               {s.items ? (
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
                   {s.items.map((i) => (
                     <li key={i}>{i}</li>
                   ))}
                 </ul>
               ) : (
-                <p>{s.text}</p>
+                <p className="text-gray-600">{s.text}</p>
               )}
             </div>
           ))}
@@ -2538,20 +2539,21 @@ function ContactView() {
     );
   }
   return (
-    <div className="p-4 sm:p-8 animate-in fade-in duration-300 bg-white min-h-screen">
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
+    <div className="animate-in fade-in duration-300 min-h-screen bg-gray-50">
+      <div className="max-w-xl mx-auto px-4 py-8">
+        <div className="bg-green-600 rounded-2xl p-6 mb-6 text-white">
           <button
             onClick={() => nav(-1)}
-            className="p-2 bg-white rounded-full shadow-sm border border-gray-200 shrink-0"
+            className="flex items-center gap-1 text-green-100 hover:text-white text-sm mb-3"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
+            戻る
           </button>
-          <h2 className="text-xl font-bold text-gray-800">お問い合わせ</h2>
+          <h2 className="text-2xl font-bold">お問い合わせ</h2>
+          <p className="text-green-100 text-sm mt-1">
+            ご質問・ご意見・不具合のご報告などはこちらから。
+          </p>
         </div>
-        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-          ご質問・ご意見・不具合のご報告などはこちらからお送りください。
-        </p>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
