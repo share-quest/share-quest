@@ -257,12 +257,13 @@ export default function App() {
     if (currentView !== "article" || !viewParam) return;
     const article = articles.find((a) => a.id === viewParam);
     if (!article) return;
+    console.log("views update:", article.id, article.views + 1);
     supabase
       .from("articles")
       .update({ views: article.views + 1 })
       .eq("id", article.id)
-      .then(({ error }) => {
-        if (error) console.error("views update error:", error);
+      .then(({ error, data }) => {
+        console.log("views result:", data, error);
       });
   }, [currentView, viewParam]);
 
