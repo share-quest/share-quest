@@ -339,7 +339,7 @@ export default function App() {
       );
       showToast("お気に入りから削除しました");
     } else {
-      void supabase.from("favorites").insert({ article_id: articleId });
+      void supabase.from("favorites").insert({ article_id: articleId, user_id: currentUserId });
       setFavorites([...favorites, articleId]);
       const curLikes = articles.find((a) => a.id === articleId)?.likes ?? 0;
       void supabase
@@ -471,7 +471,8 @@ export default function App() {
         </div>
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <CustomStarIcon className="w-6 h-6" active={true} /> おすすめの記事
+            <img src={imgRecommend} className="w-6 h-6 object-contain" alt="おすすめ" />{" "}
+            おすすめの記事
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
             {published.filter((a) => a.isRecommended).length === 0 ? (
