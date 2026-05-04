@@ -569,7 +569,7 @@ export default function App() {
               <button
                 onClick={() =>
                   window.open(
-                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`,
+                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(`【SHARE Quest】${article.title}\n\n#SHAREQuest #学び`)}&url=${encodeURIComponent(articleUrl)}`,
                     "_blank",
                   )
                 }
@@ -580,7 +580,7 @@ export default function App() {
               <button
                 onClick={() =>
                   window.open(
-                    `https://line.me/R/msg/text/?${encodeURIComponent(article.title + " " + articleUrl)}`,
+                    `https://line.me/R/msg/text/?${encodeURIComponent(`【SHARE Quest】${article.title}\n${articleUrl}`)}`,
                     "_blank",
                   )
                 }
