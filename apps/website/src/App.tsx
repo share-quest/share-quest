@@ -327,7 +327,7 @@ export default function App() {
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("home")}>
-          <LogoIcon />
+          <LogoIcon className="w-10 h-10" />
           <img
             src={imgTitle}
             className="h-8 object-contain hidden sm:inline-block"
