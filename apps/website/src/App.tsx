@@ -1292,7 +1292,6 @@ export default function App() {
               id: data.id,
               title: data.title,
               thumbnail: "",
-              thumbnailUrl: null,
               thumbnailColor: formColor,
               thumbnailUrl: thumbnailUrl,
               writerId: data.writer_id,
