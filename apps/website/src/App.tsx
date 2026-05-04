@@ -257,13 +257,13 @@ export default function App() {
     if (currentView !== "article" || !viewParam) return;
     const article = articles.find((a) => a.id === viewParam);
     if (!article) return;
-    void supabase
+    supabase
       .from("articles")
       .update({ views: article.views + 1 })
-      .eq("id", article.id);
-    setArticles((prev) =>
-      prev.map((a) => (a.id === article.id ? { ...a, views: a.views + 1 } : a)),
-    );
+      .eq("id", article.id)
+      .then(({ error }) => {
+        if (error) console.error("views update error:", error);
+      });
   }, [currentView, viewParam]);
 
   // ページタイトル更新
