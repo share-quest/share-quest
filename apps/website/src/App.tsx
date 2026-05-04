@@ -260,6 +260,9 @@ export default function App() {
       .from("articles")
       .update({ views: article.views + 1 })
       .eq("id", article.id);
+    setArticles((prev) =>
+      prev.map((a) => (a.id === article.id ? { ...a, views: a.views + 1 } : a)),
+    );
   }, [currentView, viewParam]);
 
   // ページタイトル更新
