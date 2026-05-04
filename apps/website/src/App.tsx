@@ -329,10 +329,26 @@ export default function App() {
     if (favorites.includes(articleId)) {
       void supabase.from("favorites").delete().eq("article_id", articleId);
       setFavorites(favorites.filter((id) => id !== articleId));
+      const curLikes = articles.find((a) => a.id === articleId)?.likes ?? 1;
+      void supabase
+        .from("articles")
+        .update({ likes: Math.max(0, curLikes - 1) })
+        .eq("id", articleId);
+      setArticles((prev) =>
+        prev.map((a) => (a.id === articleId ? { ...a, likes: Math.max(0, a.likes - 1) } : a)),
+      );
       showToast("お気に入りから削除しました");
     } else {
       void supabase.from("favorites").insert({ article_id: articleId });
       setFavorites([...favorites, articleId]);
+      const curLikes = articles.find((a) => a.id === articleId)?.likes ?? 0;
+      void supabase
+        .from("articles")
+        .update({ likes: curLikes + 1 })
+        .eq("id", articleId);
+      setArticles((prev) =>
+        prev.map((a) => (a.id === articleId ? { ...a, likes: a.likes + 1 } : a)),
+      );
       showToast("お気に入りに登録しました");
     }
   };
