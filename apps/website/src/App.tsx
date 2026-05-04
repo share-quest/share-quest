@@ -268,7 +268,7 @@ export default function App() {
       favorites: "お気に入り | SHARE Quest",
       settings: "設定 | SHARE Quest",
       about: "About Us | SHARE Quest",
-      writerDash: "ライター管理 | SHARE Quest",
+      writerDash: "記事を作成 | SHARE Quest",
       editorDash: "編集長ダッシュボード | SHARE Quest",
       editorArticles: "全記事管理 | SHARE Quest",
       editorRecommend: "おすすめ設定 | SHARE Quest",
