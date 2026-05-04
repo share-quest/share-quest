@@ -26,6 +26,7 @@ import imgSearch from "./assets/118_20260501193319.png";
 import imgUser from "./assets/119_20260501193952.png";
 import imgStar from "./assets/120_20260501194440.png";
 import imgSettings from "./assets/121_20260501195446.png";
+import imgRecommend from "./assets/recommend_icon.png";
 
 const LogoIcon = ({ className = "w-8 h-8" }) => (
   <img src={imgLogo} className={`${className} object-cover rounded`} alt="Logo" />
