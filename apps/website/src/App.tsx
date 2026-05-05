@@ -1155,15 +1155,6 @@ export default function App() {
           <ChevronLeft className="w-5 h-5 rotate-180" />
         </button>
       )}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-        <p className="text-sm text-gray-600 mb-2">ライターとして参加したい方は</p>
-        <button
-          onClick={() => navigate("register")}
-          className="text-blue-600 font-bold text-sm underline hover:text-blue-800"
-        >
-          ライター登録はこちら
-        </button>
-      </div>
     </div>
   );
 
