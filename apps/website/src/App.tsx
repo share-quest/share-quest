@@ -1204,7 +1204,7 @@ export default function App() {
         setNewDesc("");
         showToast("連載を作成しました");
       } else {
-        showToast("エラーが発生しました");
+        alert("エラーが発生しました");
       }
       setSaving(false);
     };
@@ -1319,7 +1319,7 @@ export default function App() {
         setArticles(articles.map((a) => (a.id === article.id ? { ...a, status: "pending" } : a)));
         showToast("投稿申請しました");
       } else {
-        showToast("エラーが発生しました");
+        alert("エラーが発生しました");
       }
     };
 
@@ -1330,7 +1330,7 @@ export default function App() {
         setArticles(articles.filter((a) => a.id !== article.id));
         showToast("記事を削除しました");
       } else {
-        showToast("エラーが発生しました");
+        alert("エラーが発生しました");
       }
     };
 
@@ -1537,7 +1537,7 @@ export default function App() {
           showToast("記事を更新しました");
           navigate("writerDash");
         } else {
-          showToast("エラーが発生しました");
+          alert("エラーが発生しました");
         }
       } else {
         const { data, error } = await supabase
@@ -1583,7 +1583,7 @@ export default function App() {
           showToast("下書きを保存しました");
           navigate("writerDash");
         } else {
-          showToast("エラーが発生しました");
+          alert("エラーが発生しました");
         }
       }
       setSaving(false);
@@ -1883,7 +1883,7 @@ export default function App() {
                         );
                         showToast("記事を公開しました");
                       } else {
-                        showToast("エラーが発生しました");
+                        alert("エラーが発生しました");
                       }
                     }}
                     className="flex-1 py-2 bg-green-500 text-white text-sm font-bold rounded-lg hover:bg-green-600 flex items-center justify-center gap-1 shadow-sm"
@@ -1904,7 +1904,7 @@ export default function App() {
                         );
                         showToast("差し戻しました");
                       } else {
-                        showToast("エラーが発生しました");
+                        alert("エラーが発生しました");
                       }
                     }}
                     className="flex-1 py-2 bg-white text-gray-600 border border-gray-300 text-sm font-bold rounded-lg hover:bg-gray-50"
@@ -2470,12 +2470,12 @@ function EditorWritersView() {
       .eq("email", email.trim())
       .single();
     if (fetchError || !data) {
-      showToast("ユーザーが見つかりません。先にアカウント登録が必要です。");
+      alert("ユーザーが見つかりません。先にアカウント登録が必要です。");
       return;
     }
     const { error } = await supabase.from("profiles").update({ role: "writer" }).eq("id", data.id);
     if (error) {
-      showToast("エラーが発生しました");
+      alert("エラーが発生しました");
       return;
     }
     const updated = { ...data, role: "writer" as const };
@@ -2484,7 +2484,7 @@ function EditorWritersView() {
     } else {
       setWriters(writers.map((w) => (w.id === data.id ? updated : w)));
     }
-    showToast(`${data.display_name ?? data.email} をライターに昇格しました`);
+    alert(`${data.display_name ?? data.email} をライターに昇格しました`);
   };
 
   const [newEmail, setNewEmail] = useState("");
@@ -2748,7 +2748,7 @@ function BioEdit({
       setEditing(false);
       showToast("自己紹介を更新しました");
     } else {
-      showToast("エラーが発生しました");
+      alert("エラーが発生しました");
     }
     setSaving(false);
   };
