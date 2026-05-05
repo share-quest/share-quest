@@ -2113,6 +2113,20 @@ export default function App() {
               {loading ? "登録中..." : "登録する"}
             </button>
           </div>
+          <div className="mt-5 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
+            <p className="text-xs text-gray-600 mb-2 font-medium">ライターとして投稿したい方は</p>
+            <a
+              href="https://x.com/SHARE_Quest_Off"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              @SHARE_Quest_Off にDMで応募
+            </a>
+          </div>
           <p className="text-center text-sm text-gray-500 mt-4">
             すでにアカウントをお持ちの方は
             <button onClick={() => nav("/login")} className="text-blue-600 underline ml-1">
@@ -2205,6 +2219,27 @@ export default function App() {
                   {label}
                 </button>
               ))}
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://x.com/SHARE_Quest_Off"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-black transition-colors font-medium"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+                @SHARE_Quest_Off
+              </a>
+              <a
+                href="https://x.com/SHARE_Quest_Off"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:text-blue-700 hover:underline transition-colors font-medium"
+              >
+                ライター応募はXのDMへ →
+              </a>
             </div>
             <div className="w-full border-t border-gray-200 pt-4 text-center">
               <p className="text-xs text-gray-400">© 2026 SHARE Quest. All rights reserved.</p>
@@ -2428,13 +2463,28 @@ function EditorWritersView() {
   };
 
   const promoteWriter = async (email: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("email", email).single();
-    if (!data) {
-      alert("ユーザーが見つかりません");
+    if (!email.trim()) return;
+    const { data, error: fetchError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", email.trim())
+      .single();
+    if (fetchError || !data) {
+      showToast("ユーザーが見つかりません。先にアカウント登録が必要です。");
       return;
     }
-    await supabase.from("profiles").update({ role: "writer" }).eq("id", data.id);
-    setWriters([...writers, { ...data, role: "writer" }]);
+    const { error } = await supabase.from("profiles").update({ role: "writer" }).eq("id", data.id);
+    if (error) {
+      showToast("エラーが発生しました");
+      return;
+    }
+    const updated = { ...data, role: "writer" as const };
+    if (!writers.find((w) => w.id === data.id)) {
+      setWriters([...writers, updated]);
+    } else {
+      setWriters(writers.map((w) => (w.id === data.id ? updated : w)));
+    }
+    showToast(`${data.display_name ?? data.email} をライターに昇格しました`);
   };
 
   const [newEmail, setNewEmail] = useState("");
