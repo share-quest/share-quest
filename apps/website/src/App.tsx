@@ -1965,7 +1965,7 @@ export default function App() {
             <span className="inline-block text-xs font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full mb-2">
               編集長
             </span>
-            <p className="text-sm text-gray-700 font-bold pl-1">三上 瑠衣　-MIKAMI Rui-</p>
+            <p className="text-sm text-gray-700 font-bold pl-1">三上 類衣　-MIKAMI Rui-</p>
           </div>
           <div>
             <span className="inline-block text-xs font-bold text-white bg-gray-400 px-2 py-0.5 rounded-full mb-2">
