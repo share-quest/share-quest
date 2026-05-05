@@ -2043,7 +2043,7 @@ export default function App() {
             </button>
           </div>
           <p className="text-center text-sm text-gray-500 mt-4">
-            ライター登録は
+            アカウント登録は
             <button onClick={() => nav("/register")} className="text-blue-600 underline ml-1">
               こちら
             </button>
@@ -2080,7 +2080,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-6">ライター登録</h1>
+          <h1 className="text-2xl font-bold text-center mb-6">アカウント登録</h1>
           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
           <div className="space-y-4">
             <input
@@ -2113,7 +2113,9 @@ export default function App() {
             </button>
           </div>
           <div className="mt-5 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
-            <p className="text-xs text-gray-600 mb-2 font-medium">ライターとして投稿したい方は</p>
+            <p className="text-xs text-gray-600 mb-2 font-medium">
+              ライターとして記事を書きたい方は、登録後にXでご連絡ください
+            </p>
             <a
               href="https://x.com/SHARE_Quest_Off"
               target="_blank"
