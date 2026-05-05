@@ -298,7 +298,34 @@ export default function App() {
       contact: "お問い合わせ | SHARE Quest",
       notFound: "404 | SHARE Quest",
     };
-    document.title = titles[currentView] ?? "SHARE Quest";
+
+    const setMeta = (title: string, description: string) => {
+      document.title = title;
+      const setTag = (sel: string, attr: string, val: string) => {
+        const el = document.querySelector(sel);
+        if (el) el.setAttribute(attr, val);
+      };
+      setTag('meta[name="description"]', "content", description);
+      setTag('meta[property="og:title"]', "content", title);
+      setTag('meta[property="og:description"]', "content", description);
+      setTag('meta[name="twitter:title"]', "content", title);
+      setTag('meta[name="twitter:description"]', "content", description);
+    };
+
+    if (currentView === "article" && viewParam) {
+      const article = articles.find((a) => a.id === viewParam);
+      if (article) {
+        const desc = article.summary
+          ? article.summary.slice(0, 120)
+          : `${article.title} - SHARE Questの記事`;
+        setMeta(`${article.title} | SHARE Quest`, desc);
+        return;
+      }
+    }
+
+    const defaultDesc =
+      "SHARE Questは、学びの「楽しい！」をつなげる記事プラットフォームです。ライターと読者をつなぎ、知識と好奇心を共有します。";
+    setMeta(titles[currentView] ?? "SHARE Quest", defaultDesc);
   }, [currentView, viewParam, articles]);
 
   const [toastMessage, setToastMessage] = useState("");
@@ -1915,28 +1942,44 @@ export default function App() {
         {currentView === "terms" && <TermsView />}
         {currentView === "contact" && <ContactView />}
       </main>
-      <footer className="max-w-2xl mx-auto px-4 py-8 border-t border-gray-200 mt-4 text-center text-xs text-gray-400 space-y-2">
-        <div className="flex justify-center gap-6">
-          <button onClick={() => navigate("about")} className="hover:text-blue-500 hover:underline">
-            About Us
-          </button>
-          <button
-            onClick={() => navigate("privacy")}
-            className="hover:text-blue-500 hover:underline"
-          >
-            プライバシーポリシー
-          </button>
-          <button onClick={() => navigate("terms")} className="hover:text-blue-500 hover:underline">
-            利用規約
-          </button>
-          <button
-            onClick={() => navigate("contact")}
-            className="hover:text-blue-500 hover:underline"
-          >
-            お問い合わせ
-          </button>
+      <footer className="bg-gray-50 border-t border-gray-200 mt-8">
+        <div className="max-w-2xl mx-auto px-6 py-10">
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => navigate("home")}
+              >
+                <LogoIcon className="w-9 h-9" />
+                <img src={imgTitle} className="h-6 object-contain" alt="SHARE Quest" />
+              </div>
+              <p className="text-xs text-gray-500 text-center leading-relaxed max-w-xs">
+                学びの「楽しい！」をつなげる、
+                <br />
+                ライターと読者をつなぐ記事プラットフォーム
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+              {[
+                { label: "About Us", view: "about" },
+                { label: "プライバシーポリシー", view: "privacy" },
+                { label: "利用規約", view: "terms" },
+                { label: "お問い合わせ", view: "contact" },
+              ].map(({ label, view }) => (
+                <button
+                  key={view}
+                  onClick={() => navigate(view)}
+                  className="text-xs text-gray-500 hover:text-blue-600 hover:underline transition-colors font-medium"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="w-full border-t border-gray-200 pt-4 text-center">
+              <p className="text-xs text-gray-400">© 2026 SHARE Quest. All rights reserved.</p>
+            </div>
+          </div>
         </div>
-        <p>© 2026 SHARE Quest</p>
       </footer>
       {toastMessage && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-3 text-sm font-bold whitespace-nowrap">
