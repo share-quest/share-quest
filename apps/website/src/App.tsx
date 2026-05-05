@@ -865,7 +865,7 @@ export default function App() {
 
   // --- ProfileView ---
   const ProfileView = () => {
-    const writer = writers.find((w) => w.id === viewParam);
+    const writer = writers.find((w) => w.id === viewParam || w.username === viewParam);
     if (!writer)
       return <div className="p-10 text-center text-gray-500">プロフィールが見つかりません</div>;
     const writerArticles = articles.filter(
@@ -1012,6 +1012,14 @@ export default function App() {
               setWriters={setWriters}
               showToast={showToast}
             />
+            {(userRole === "writer" || userRole === "editor") && (
+              <BioEdit
+                profile={profile}
+                setProfile={setProfile}
+                setWriters={setWriters}
+                showToast={showToast}
+              />
+            )}
           </>
         )}
         {userRole !== "guest" && (
@@ -2384,6 +2392,86 @@ function UsernameEdit({
               setEditing(true);
             }}
             className="text-xs text-blue-500 font-bold underline"
+          >
+            編集
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+function BioEdit({
+  profile,
+  setProfile,
+  setWriters,
+  showToast,
+}: {
+  profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setWriters: React.Dispatch<React.SetStateAction<Profile[]>>;
+  showToast: (msg: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [bio, setBio] = useState(profile?.bio ?? "");
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    if (!profile) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ bio }).eq("id", profile.id);
+    if (!error) {
+      setProfile((p) => (p ? { ...p, bio } : p));
+      setWriters((ws) => ws.map((w) => (w.id === profile.id ? { ...w, bio } : w)));
+      setEditing(false);
+      showToast("自己紹介を更新しました");
+    } else {
+      showToast("エラーが発生しました");
+    }
+    setSaving(false);
+  };
+  return (
+    <div className="p-4 border-b border-gray-100">
+      <p className="text-xs text-gray-500 mb-1 font-bold">自己紹介</p>
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            rows={4}
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="あなたの自己紹介を入力してください"
+            maxLength={300}
+          />
+          <p className="text-xs text-gray-400 text-right">{bio.length}/300文字</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => void handleSave()}
+              disabled={saving}
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? "…" : "保存"}
+            </button>
+            <button
+              onClick={() => {
+                setEditing(false);
+                setBio(profile?.bio ?? "");
+              }}
+              className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-gray-700 flex-1 whitespace-pre-wrap">
+            {profile?.bio ? profile.bio : <span className="text-gray-400">（未設定）</span>}
+          </p>
+          <button
+            onClick={() => {
+              setBio(profile?.bio ?? "");
+              setEditing(true);
+            }}
+            className="text-xs text-blue-500 font-bold underline shrink-0"
           >
             編集
           </button>
