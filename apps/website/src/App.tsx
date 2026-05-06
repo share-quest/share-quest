@@ -284,17 +284,15 @@ export default function App() {
 
   // views カウントアップ
   useEffect(() => {
-    console.log("views effect:", currentView, viewParam, articles.length);
     if (currentView !== "article" || !viewParam) return;
     const article = articles.find((a) => a.id === viewParam);
-    console.log("views article:", article?.id, article?.views);
     if (!article) return;
     supabase
       .from("articles")
       .update({ views: article.views + 1 })
       .eq("id", article.id)
-      .then(({ error, data }) => {
-        console.log("views result:", data, error);
+      .then(({ error }) => {
+        if (error) console.error("views update error:", error);
       });
     setArticles((prev) =>
       prev.map((a) => (a.id === article.id ? { ...a, views: a.views + 1 } : a)),
@@ -323,7 +321,7 @@ export default function App() {
       editorRecommend: "おすすめ設定 | SHARE Quest",
       editorWriters: "ライター管理 | SHARE Quest",
       login: "ログイン | SHARE Quest",
-      register: "ライター登録 | SHARE Quest",
+      register: "アカウント登録 | SHARE Quest",
       privacy: "プライバシーポリシー | SHARE Quest",
       terms: "利用規約 | SHARE Quest",
       contact: "お問い合わせ | SHARE Quest",
@@ -2136,6 +2134,7 @@ export default function App() {
     "writerDash",
     "writerNew",
     "writerEdit",
+    "writerSeries",
     "editorDash",
     "editorArticles",
     "editorRecommend",
