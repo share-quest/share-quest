@@ -1197,7 +1197,7 @@ export default function App() {
         setNewDesc("");
         showToast("連載を作成しました");
       } else {
-        alert("エラーが発生しました");
+        showToast("エラーが発生しました。もう一度お試しください。");
       }
       setSaving(false);
     };
@@ -1314,7 +1314,7 @@ export default function App() {
         setArticles(articles.map((a) => (a.id === article.id ? { ...a, status: "pending" } : a)));
         showToast("投稿申請しました");
       } else {
-        alert("エラーが発生しました");
+        showToast("エラーが発生しました。もう一度お試しください。");
       }
     };
 
@@ -1325,7 +1325,7 @@ export default function App() {
         setArticles(articles.filter((a) => a.id !== article.id));
         showToast("記事を削除しました");
       } else {
-        alert("エラーが発生しました");
+        showToast("エラーが発生しました。もう一度お試しください。");
       }
     };
 
@@ -1898,7 +1898,7 @@ export default function App() {
                         );
                         showToast("記事を公開しました");
                       } else {
-                        alert("エラーが発生しました");
+                        showToast("エラーが発生しました。もう一度お試しください。");
                       }
                     }}
                     className="flex-1 py-2 bg-green-500 text-white text-sm font-bold rounded-lg hover:bg-green-600 flex items-center justify-center gap-1 shadow-sm"
@@ -1919,7 +1919,7 @@ export default function App() {
                         );
                         showToast("差し戻しました");
                       } else {
-                        alert("エラーが発生しました");
+                        showToast("エラーが発生しました。もう一度お試しください。");
                       }
                     }}
                     className="flex-1 py-2 bg-white text-gray-600 border border-gray-300 text-sm font-bold rounded-lg hover:bg-gray-50"
@@ -2276,6 +2276,11 @@ export default function App() {
           </button>
         </div>
       )}
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/90 text-white px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-bold whitespace-nowrap animate-in slide-in-from-bottom-5 fade-in duration-300">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
@@ -2464,7 +2469,13 @@ function EditorWritersView() {
   const [loading, setLoading] = useState(true);
   const [searchEmail, setSearchEmail] = useState("");
   const [searchRole, setSearchRole] = useState<"" | "viewer" | "writer" | "editor">("");
+  const [toast, setToast] = useState("");
   const nav = useNavigate();
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
 
   const fetchAll = () => {
     setLoading(true);
@@ -2485,7 +2496,7 @@ function EditorWritersView() {
   const changeRole = async (id: string, role: "viewer" | "writer" | "editor") => {
     const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
     if (error) {
-      alert("更新に失敗しました: " + error.message);
+      showToast("更新に失敗しました: " + error.message);
     } else {
       setAllProfiles(allProfiles.map((w) => (w.id === id ? { ...w, role } : w)));
     }
@@ -2499,12 +2510,12 @@ function EditorWritersView() {
       .eq("email", email.trim())
       .single();
     if (fetchError || !data) {
-      alert("ユーザーが見つかりません。先にアカウント登録が必要です。");
+      showToast("ユーザーが見つかりません。先にアカウント登録が必要です。");
       return;
     }
     const { error } = await supabase.from("profiles").update({ role: "writer" }).eq("id", data.id);
     if (error) {
-      alert("エラーが発生しました");
+      showToast("エラーが発生しました。もう一度お試しください。");
       return;
     }
     const updated = { ...data, role: "writer" as const };
@@ -2513,7 +2524,7 @@ function EditorWritersView() {
         ? prev.map((w) => (w.id === data.id ? updated : w))
         : [...prev, updated],
     );
-    alert(`${data.display_name ?? data.email} をライターに昇格しました`);
+    showToast(`${data.display_name ?? data.email} をライターに昇格しました`);
   };
 
   const [newEmail, setNewEmail] = useState("");
@@ -2845,7 +2856,7 @@ function BioEdit({
       setEditing(false);
       showToast("自己紹介を更新しました");
     } else {
-      alert("エラーが発生しました");
+      showToast("エラーが発生しました。もう一度お試しください。");
     }
     setSaving(false);
   };
