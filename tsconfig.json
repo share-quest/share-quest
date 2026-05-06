@@ -5,8 +5,5 @@
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
     "esModuleInterop": true
-  },
-  "references": [
-    { "path": "./apps/website" }
-  ]
+  }
 }
