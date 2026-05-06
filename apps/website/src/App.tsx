@@ -2276,11 +2276,6 @@ export default function App() {
           </button>
         </div>
       )}
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/90 text-white px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-bold whitespace-nowrap animate-in slide-in-from-bottom-5 fade-in duration-300">
-          {toast}
-        </div>
-      )}
     </div>
   );
 }
