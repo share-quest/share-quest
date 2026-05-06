@@ -485,7 +485,7 @@ export default function App() {
     article,
     layout = "horizontal",
   }: {
-    article: any;
+    article: Article;
     layout?: "horizontal" | "vertical";
   }) => {
     const writer = writers.find((w) => w.id === article.writerId);
@@ -1216,6 +1216,8 @@ export default function App() {
           ),
         );
         showToast("連載を削除しました");
+      } else {
+        showToast("削除に失敗しました。もう一度お試しください。");
       }
     };
 
@@ -1450,6 +1452,7 @@ export default function App() {
     const [formEpisodeNumber, setFormEpisodeNumber] = useState(
       editingArticle?.episodeNumber != null ? String(editingArticle.episodeNumber) : "",
     );
+    const [formSummary, setFormSummary] = useState(editingArticle?.summary ?? "");
     const [tagInput, setTagInput] = useState("");
     const [saving, setSaving] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
@@ -1503,6 +1506,7 @@ export default function App() {
           .update({
             title: formTitle,
             content: formContent,
+            summary: formSummary || null,
             tags,
             thumbnail_color: formColor,
             thumbnail_url: thumbnailUrl,
@@ -1518,6 +1522,7 @@ export default function App() {
                     ...a,
                     title: formTitle,
                     content: formContent,
+                    summary: formSummary || undefined,
                     tags,
                     thumbnailColor: formColor,
                     thumbnailUrl: thumbnailUrl,
@@ -1530,7 +1535,7 @@ export default function App() {
           showToast("記事を更新しました");
           navigate("writerDash");
         } else {
-          alert("エラーが発生しました");
+          showToast("エラーが発生しました。もう一度お試しください。");
         }
       } else {
         const { data, error } = await supabase
@@ -1538,6 +1543,7 @@ export default function App() {
           .insert({
             title: formTitle,
             content: formContent,
+            summary: formSummary || null,
             tags,
             thumbnail_color: formColor,
             thumbnail_url: thumbnailUrl,
@@ -1569,6 +1575,7 @@ export default function App() {
               isPopular: false,
               status: "draft",
               content: formContent,
+              summary: formSummary || undefined,
               seriesId: formSeriesId || null,
               episodeNumber: formEpisodeNumber ? parseInt(formEpisodeNumber) : null,
             },
@@ -1576,7 +1583,7 @@ export default function App() {
           showToast("下書きを保存しました");
           navigate("writerDash");
         } else {
-          alert("エラーが発生しました");
+          showToast("エラーが発生しました。もう一度お試しください。");
         }
       }
       setSaving(false);
@@ -1679,6 +1686,21 @@ export default function App() {
                     placeholder="記事のタイトルを入力"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    要約{" "}
+                    <span className="text-gray-400 font-normal text-xs">
+                      （記事の冒頭に表示されます）
+                    </span>
+                  </label>
+                  <textarea
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                    rows={3}
+                    placeholder="記事の要約を入力（省略可）"
+                    value={formSummary}
+                    onChange={(e) => setFormSummary(e.target.value)}
                   />
                 </div>
                 <div>
@@ -2065,8 +2087,8 @@ export default function App() {
       });
       if (error) setError(error.message);
       else {
-        alert("確認メールを送信しました。メールを確認してください。");
         nav("/login");
+        showToast("確認メールを送信しました。メールを確認してください。");
       }
       setLoading(false);
     };
