@@ -438,7 +438,7 @@ export default function App() {
   // --- Header ---
   const Header = () => (
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
+      <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("home")}>
           <LogoIcon className="w-10 h-10" />
           <img
@@ -538,7 +538,7 @@ export default function App() {
   const HomeView = () => {
     const published = articles.filter((a) => a.status === "published");
     return (
-      <div className="p-4 space-y-8 animate-in fade-in duration-300">
+      <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
         <div className="text-center py-5 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden">
           <LogoIcon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10" />
           <p className="text-blue-600 font-bold tracking-wide">
@@ -556,14 +556,14 @@ export default function App() {
             <img src={imgRecommend} className="w-6 h-6 object-contain" alt="おすすめ" />{" "}
             おすすめの記事
           </h2>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
             {published.filter((a) => a.isRecommended).length === 0 ? (
               <p className="text-gray-400 text-sm py-4">まだおすすめ記事はありません</p>
             ) : (
               published
                 .filter((a) => a.isRecommended)
                 .map((article) => (
-                  <div key={article.id} className="min-w-[240px] snap-start">
+                  <div key={article.id} className="min-w-[240px] snap-start md:min-w-0">
                     <ArticleCard article={article} layout="vertical" />
                   </div>
                 ))
@@ -574,7 +574,7 @@ export default function App() {
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="text-red-500 font-bold text-xl">🔥</span> 人気の記事
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {published.filter((a) => a.isPopular).length === 0 ? (
               <p className="text-gray-400 text-sm py-4">まだ人気記事はありません</p>
             ) : (
@@ -586,7 +586,7 @@ export default function App() {
         </section>
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">記事一覧</h2>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {published.length === 0 ? (
               <p className="text-gray-400 text-sm py-4">まだ公開記事はありません</p>
             ) : (
@@ -633,7 +633,7 @@ export default function App() {
             <LogoIcon className="w-20 h-20 opacity-20" />
           </div>
         )}
-        <div className="p-4 space-y-5">
+        <div className="p-4 md:p-8 space-y-5 max-w-3xl mx-auto">
           {article.seriesId &&
             (() => {
               const series = seriesList.find((s) => s.id === article.seriesId);
@@ -912,14 +912,14 @@ export default function App() {
       </div>
     );
     return (
-      <div className="p-4 space-y-6 animate-in fade-in duration-300">
+      <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 border-b-2 border-blue-500 pb-2 inline-flex">
           <CustomUserIcon className="w-6 h-6" active={true} /> ライター・編集長 一覧
         </h2>
         {editors.length > 0 && (
           <section>
             <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden md:grid md:grid-cols-2">
               {editors.map((w) => (
                 <WriterRow key={w.id} w={w} />
               ))}
@@ -928,7 +928,7 @@ export default function App() {
         )}
         <section>
           <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">ライター</h3>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden md:grid md:grid-cols-2">
             {writerList.length > 0 ? (
               writerList.map((w) => <WriterRow key={w.id} w={w} />)
             ) : (
@@ -983,7 +983,7 @@ export default function App() {
               </span>
               この人の記事 ({writerArticles.length}件)
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               {writerArticles.length > 0 ? (
                 writerArticles.map((article) => <ArticleCard key={article.id} article={article} />)
               ) : (
@@ -1348,7 +1348,7 @@ export default function App() {
     };
 
     return (
-      <div className="p-4 space-y-6 animate-in slide-in-from-right-8 duration-300">
+      <div className="p-4 md:p-8 space-y-6 animate-in slide-in-from-right-8 duration-300">
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate("settings")}
@@ -2151,7 +2151,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 pb-10 text-gray-800 font-sans selection:bg-blue-200">
       {!hideHeader && <Header />}
-      <main className="max-w-2xl mx-auto min-h-[80vh]">
+      <main className="max-w-6xl mx-auto min-h-[80vh]">
         {currentView === "notFound" && <NotFoundView />}
         {currentView === "home" && <HomeView />}
         {currentView === "article" && <ArticleView />}
@@ -2184,7 +2184,7 @@ export default function App() {
         {currentView === "contact" && <ContactView />}
       </main>
       <footer className="bg-gray-50 border-t border-gray-200 mt-8">
-        <div className="max-w-2xl mx-auto px-6 py-10">
+        <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex flex-col items-center gap-6">
             <div className="flex flex-col items-center gap-2">
               <div
@@ -3016,7 +3016,7 @@ function PrivacyView() {
   ];
   return (
     <div className="animate-in fade-in duration-300 min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-blue-600 rounded-2xl p-6 mb-6 text-white">
           <button
             onClick={() => nav(-1)}
@@ -3103,7 +3103,7 @@ function TermsView() {
   ];
   return (
     <div className="animate-in fade-in duration-300 min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-purple-600 rounded-2xl p-6 mb-6 text-white">
           <button
             onClick={() => nav(-1)}
