@@ -1436,7 +1436,7 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {myArticles.length === 0 && (
               <p className="text-sm text-gray-500 text-center py-8 bg-white rounded-xl border">
                 まだ記事がありません。「新規作成」から始めましょう！
@@ -1674,7 +1674,7 @@ export default function App() {
             </button>
           </div>
         </div>
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <div className="max-w-5xl mx-auto px-4 py-6">
           {showPreview ? (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <div
@@ -1700,7 +1700,7 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <>
+            <div className="md:grid md:grid-cols-[360px_1fr] md:gap-6 space-y-6 md:space-y-0 items-start">
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">連載</label>
@@ -1867,7 +1867,7 @@ export default function App() {
                   placeholder="記事の本文を入力してください"
                 />
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
