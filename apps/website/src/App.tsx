@@ -1,3 +1,4 @@
+import RichTextEditor from "./components/RichTextEditor";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
@@ -1190,7 +1191,6 @@ export default function App() {
       } else {
         console.error("連載作成エラー:", error);
         showToast("エラーが発生しました。もう一度お試しください。");
-        showToast("エラーが発生しました。もう一度お試しください。");
       }
       setSaving(false);
     };
@@ -1499,7 +1499,6 @@ export default function App() {
           .update({
             title: formTitle,
             content: formContent,
-            summary: formSummary || null,
             tags,
             thumbnail_color: formColor,
             thumbnail_url: thumbnailUrl,
@@ -1527,8 +1526,7 @@ export default function App() {
           );
           showToast("記事を更新しました");
           navigate("writerDash");
-          console.error("記事更新エラー:", error);
-          showToast("エラーが発生しました。もう一度お試しください。");
+        } else {
           console.error("記事更新エラー:", error);
           showToast("エラーが発生しました。もう一度お試しください。");
         }
@@ -1538,7 +1536,6 @@ export default function App() {
           .insert({
             title: formTitle,
             content: formContent,
-            summary: formSummary || null,
             tags,
             thumbnail_color: formColor,
             thumbnail_url: thumbnailUrl,
@@ -1576,8 +1573,6 @@ export default function App() {
             },
           ]);
           showToast("下書きを保存しました");
-          console.error("下書き保存エラー:", error);
-          showToast("エラーが発生しました。もう一度お試しください。");
         } else {
           console.error("下書き保存エラー:", error);
           showToast("エラーが発生しました。もう一度お試しください。");
@@ -1803,12 +1798,10 @@ export default function App() {
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                 <label className="block text-sm font-bold text-gray-700 mb-2">本文</label>
-                <textarea
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-loose"
-                  rows={24}
+                <RichTextEditor
+                  content={formContent}
+                  onChange={setFormContent}
                   placeholder="記事の本文を入力してください"
-                  value={formContent}
-                  onChange={(e) => setFormContent(e.target.value)}
                 />
               </div>
             </>
