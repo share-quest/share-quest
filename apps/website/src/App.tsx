@@ -826,6 +826,17 @@ export default function App() {
           <div className="grid grid-cols-2 gap-2">
             {writers
               .filter((w) => w.role === "writer" || w.role === "editor")
+              .sort((a, b) => {
+                const rank = (w: typeof a) => {
+                  if ((w.display_name ?? "").includes("SHARE Quest編集部")) return 0;
+                  if (w.role === "editor") return 1;
+                  return 2;
+                };
+                const ra = rank(a),
+                  rb = rank(b);
+                if (ra !== rb) return ra - rb;
+                return (a.display_name ?? "").localeCompare(b.display_name ?? "", "ja");
+              })
               .map((w) => (
                 <button
                   key={w.id}
