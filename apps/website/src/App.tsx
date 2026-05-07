@@ -879,7 +879,7 @@ export default function App() {
     const writerList = writers.filter((w) => w.role === "writer");
     const WriterRow = ({ w }: { w: Profile }) => (
       <div
-        className="flex items-center justify-between p-4 bg-white border-b last:border-b-0 cursor-pointer hover:bg-blue-50 transition-colors"
+        className="flex items-center justify-between p-4 bg-white border-b last:border-b-0 md:border md:border-gray-200 md:rounded-xl md:last:border-b md:m-2 cursor-pointer hover:bg-blue-50 transition-colors"
         onClick={() => navigate("profile", w.id)}
       >
         <div className="flex items-center gap-4">
@@ -910,7 +910,7 @@ export default function App() {
         {editors.length > 0 && (
           <section>
             <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden md:grid md:grid-cols-2">
+            <div className="rounded-xl md:grid md:grid-cols-2 md:gap-3 md:overflow-visible md:bg-transparent md:border-0 md:shadow-none">
               {editors.map((w) => (
                 <WriterRow key={w.id} w={w} />
               ))}
@@ -919,7 +919,7 @@ export default function App() {
         )}
         <section>
           <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">ライター</h3>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden md:grid md:grid-cols-2">
+          <div className="rounded-xl md:grid md:grid-cols-2 md:gap-3 md:overflow-visible md:bg-transparent md:border-0 md:shadow-none">
             {writerList.length > 0 ? (
               writerList.map((w) => <WriterRow key={w.id} w={w} />)
             ) : (
@@ -1188,6 +1188,8 @@ export default function App() {
         setNewDesc("");
         showToast("連載を作成しました");
       } else {
+        console.error("連載作成エラー:", error);
+        showToast("エラーが発生しました。もう一度お試しください。");
         showToast("エラーが発生しました。もう一度お試しください。");
       }
       setSaving(false);
@@ -1525,7 +1527,9 @@ export default function App() {
           );
           showToast("記事を更新しました");
           navigate("writerDash");
-        } else {
+          console.error("記事更新エラー:", error);
+          showToast("エラーが発生しました。もう一度お試しください。");
+          console.error("記事更新エラー:", error);
           showToast("エラーが発生しました。もう一度お試しください。");
         }
       } else {
@@ -1572,8 +1576,10 @@ export default function App() {
             },
           ]);
           showToast("下書きを保存しました");
-          navigate("writerDash");
+          console.error("下書き保存エラー:", error);
+          showToast("エラーが発生しました。もう一度お試しください。");
         } else {
+          console.error("下書き保存エラー:", error);
           showToast("エラーが発生しました。もう一度お試しください。");
         }
       }
