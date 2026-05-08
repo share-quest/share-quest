@@ -2010,7 +2010,7 @@ export default function App() {
     <div className="p-6 space-y-6 animate-in slide-in-from-bottom-4 duration-300 bg-white min-h-screen">
       <div className="text-center py-8">
         <LogoIcon className="w-20 h-20 mx-auto mb-4" />
-        <img src={imgTitle} className="h-14 object-contain mx-auto mb-2" alt="SHARE Quest" />
+        <img src={imgTitle} className="h-[72px] object-contain mx-auto mb-2" alt="SHARE Quest" />
         <p className="text-blue-600 font-bold">ー 学びの『楽しい！』をつなげる ー</p>
       </div>
       <div className="space-y-6">
@@ -2279,7 +2279,7 @@ export default function App() {
                 onClick={() => navigate("home")}
               >
                 <LogoIcon className="w-9 h-9" />
-                <img src={imgTitle} className="h-10 object-contain" alt="SHARE Quest" />
+                <img src={imgTitle} className="h-[52px] object-contain" alt="SHARE Quest" />
               </div>
               <p className="text-xs text-gray-500 text-center leading-relaxed max-w-xs">
                 学びの「楽しい！」をつなげる、
