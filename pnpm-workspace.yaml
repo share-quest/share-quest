@@ -18,7 +18,9 @@ catalog:
   "@tiptap/pm": ^3.22.5
   "@tiptap/react": ^3.22.5
   "@tiptap/starter-kit": ^3.22.5
+  "@types/dompurify": ^3.2.0
   "@types/node": ^24
+  dompurify: ^3.4.2
   tslib: ^2.8.1
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest

@@ -1,7 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || typeof supabaseUrl !== "string") {
+  throw new Error(
+    "環境変数 VITE_SUPABASE_URL が設定されていません。\n" +
+      ".env.example を参考に apps/website/.env を作成してください。",
+  );
+}
+
+if (!supabaseAnonKey || typeof supabaseAnonKey !== "string") {
+  throw new Error(
+    "環境変数 VITE_SUPABASE_ANON_KEY が設定されていません。\n" +
+      ".env.example を参考に apps/website/.env を作成してください。",
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

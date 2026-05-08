@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import type { Profile } from "./supabase";
 import { ChevronLeft, Share2, Eye, X, Plus, Edit3, Check, AlertCircle } from "lucide-react";
+import { sanitizeHtml } from "./utils/sanitize";
 
 type Series = {
   id: string;
@@ -264,7 +265,7 @@ export default function App() {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
-    if (userRole === "guest") return;
+    if (userRole === "guest" || !currentUserId) return;
     void supabase
       .from("favorites")
       .select("article_id")
@@ -272,7 +273,7 @@ export default function App() {
       .then(({ data }) => {
         if (data) setFavorites(data.map((f) => f.article_id));
       });
-  }, [userRole]);
+  }, [userRole, currentUserId]);
 
   // views カウントアップ（セッション内で同じ記事は1回だけ）
   const [draftTitle, setDraftTitle] = useState("");
@@ -712,7 +713,7 @@ export default function App() {
             className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}
           >
             {article.content ? (
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
             ) : (
               <span className="text-gray-400 italic">本文はまだ書かれていません</span>
             )}
@@ -1346,7 +1347,7 @@ export default function App() {
                             </div>
                             <button
                               onClick={() => {
-                                navigate("writerEdit");
+                                navigate("writerEdit", a.id);
                               }}
                               className="text-xs text-blue-500 hover:text-blue-700 shrink-0"
                             >
@@ -2473,7 +2474,7 @@ function EditorArticlesView() {
             </div>
             <div className="overflow-y-auto p-5 prose prose-sm max-w-none">
               {previewArticle.content ? (
-                <div dangerouslySetInnerHTML={{ __html: previewArticle.content }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewArticle.content) }} />
               ) : (
                 <p className="text-gray-400 text-sm text-center py-8">本文がありません</p>
               )}
@@ -3050,10 +3051,10 @@ function AvatarUpload({
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    const publicUrl = data.publicUrl + "?t=" + Date.now();
-
-    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", profile.id);
-    onUpdate(publicUrl);
+    const cleanUrl = data.publicUrl;
+    const displayUrl = cleanUrl + "?t=" + Date.now();
+    await supabase.from("profiles").update({ avatar_url: cleanUrl }).eq("id", profile.id);
+    onUpdate(displayUrl);
     setUploading(false);
   };
 
@@ -3140,7 +3141,7 @@ function PrivacyView() {
     },
     {
       title: "4. 情報の管理",
-      text: "収集した情報はSupabaseを通じて安全に管理されます。不正アクセスや漏洱を防ぐため、適切な技術的措置を講じています。",
+      text: "収集した情報はSupabaseを通じて安全に管理されます。不正アクセスや漏洩を防ぐため、適切な技術的措置を講じています。",
     },
     {
       title: "5. Cookieについて",
