@@ -275,6 +275,13 @@ export default function App() {
   }, [userRole]);
 
   // views カウントアップ（セッション内で同じ記事は1回だけ）
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftContent, setDraftContent] = useState("");
+  const [draftColor, setDraftColor] = useState("blue");
+  const [draftTags, setDraftTags] = useState<string[]>([]);
+  const [draftSeriesId, setDraftSeriesId] = useState("");
+  const [draftEpisodeNumber, setDraftEpisodeNumber] = useState("");
+  const [draftThumbnailUrl, setDraftThumbnailUrl] = useState<string | null>(null);
   const viewedArticleIds = useMemo(() => new Set<string>(), []);
   useEffect(() => {
     if (currentView !== "article" || !viewParam) return;
@@ -705,7 +712,7 @@ export default function App() {
             className={`py-4 text-gray-800 whitespace-pre-wrap leading-loose ${getFontSizeClass()}`}
           >
             {article.content ? (
-              article.content
+              <div dangerouslySetInnerHTML={{ __html: article.content }} />
             ) : (
               <span className="text-gray-400 italic">本文はまだ書かれていません</span>
             )}
@@ -1512,22 +1519,27 @@ export default function App() {
   // --- ArticleEditorPage ---
   const ArticleEditorPage = ({ editingId }: { editingId: string | null }) => {
     const editingArticle = editingId ? (articles.find((a) => a.id === editingId) ?? null) : null;
-    const [formTitle, setFormTitle] = useState(editingArticle?.title ?? "");
-    const [formContent, setFormContent] = useState(editingArticle?.content ?? "");
-    const [formColor, setFormColor] = useState(editingArticle?.thumbnailColor ?? "blue");
-    const [tags, setTags] = useState<string[]>(editingArticle?.tags ?? []);
-    const [formSeriesId, setFormSeriesId] = useState(editingArticle?.seriesId ?? "");
-    const [formEpisodeNumber, setFormEpisodeNumber] = useState(
-      editingArticle?.episodeNumber != null ? String(editingArticle.episodeNumber) : "",
-    );
+    const [formTitle, setFormTitle] = [draftTitle, setDraftTitle];
+    const [formContent, setFormContent] = [draftContent, setDraftContent];
+    const [formColor, setFormColor] = [draftColor, setDraftColor];
+    const [tags, setTags] = [draftTags, setDraftTags];
+    const [formSeriesId, setFormSeriesId] = [draftSeriesId, setDraftSeriesId];
+    const [formEpisodeNumber, setFormEpisodeNumber] = [draftEpisodeNumber, setDraftEpisodeNumber];
     const [formSummary, setFormSummary] = useState(editingArticle?.summary ?? "");
     const [tagInput, setTagInput] = useState("");
     const [saving, setSaving] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
-    const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
-      editingArticle?.thumbnailUrl ?? null,
-    );
+    const [thumbnailUrl, setThumbnailUrl] = [draftThumbnailUrl, setDraftThumbnailUrl];
     const [thumbnailUploading, setThumbnailUploading] = useState(false);
+    useEffect(() => {
+      setDraftTitle(editingArticle?.title ?? "");
+      setDraftContent(editingArticle?.content ?? "");
+      setDraftColor(editingArticle?.thumbnailColor ?? "blue");
+      setDraftTags(editingArticle?.tags ?? []);
+      setDraftSeriesId(editingArticle?.seriesId ?? "");
+      setDraftEpisodeNumber(editingArticle?.episodeNumber?.toString() ?? "");
+      setDraftThumbnailUrl(editingArticle?.thumbnailUrl ?? null);
+    }, [editingId]);
 
     const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -1796,7 +1808,7 @@ export default function App() {
                   {thumbnailUrl && (
                     <div
                       className="mb-2 rounded-xl overflow-hidden border border-gray-200"
-                      style={{ aspectRatio: "16/9" }}
+                      style={{ aspectRatio: "16/9", maxHeight: "240px" }}
                     >
                       <img
                         src={thumbnailUrl}
