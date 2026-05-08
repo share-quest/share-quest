@@ -2348,6 +2348,7 @@ export default function App() {
 function EditorArticlesView() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -2411,14 +2412,16 @@ function EditorArticlesView() {
             articles.map((a) => (
               <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 text-sm truncate">{a.title}</p>
+                  <button className="flex-1 min-w-0 text-left" onClick={() => setPreviewArticle(a)}>
+                    <p className="font-bold text-gray-800 text-sm truncate hover:text-blue-600">
+                      {a.title}
+                    </p>
                     <span
                       className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor(a.status)}`}
                     >
                       {statusLabel(a.status)}
                     </span>
-                  </div>
+                  </button>
                   <button
                     onClick={() => handleDelete(a.id)}
                     className="p-2 text-red-400 hover:bg-red-50 rounded-lg flex-shrink-0"
@@ -2429,6 +2432,41 @@ function EditorArticlesView() {
               </div>
             ))
           )}
+        </div>
+      )}
+      {previewArticle && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setPreviewArticle(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-base truncate">{previewArticle.title}</p>
+                <span
+                  className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor(previewArticle.status)}`}
+                >
+                  {statusLabel(previewArticle.status)}
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewArticle(null)}
+                className="ml-3 p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-5 prose prose-sm max-w-none">
+              {previewArticle.content ? (
+                <div dangerouslySetInnerHTML={{ __html: previewArticle.content }} />
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-8">本文がありません</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
