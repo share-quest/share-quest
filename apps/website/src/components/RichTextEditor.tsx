@@ -108,7 +108,10 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
     content,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
-      attributes: { class: "prose prose-sm max-w-none min-h-[400px] p-4 focus:outline-none" },
+      attributes: {
+        class:
+          "prose prose-sm max-w-none min-h-[300px] sm:min-h-[400px] p-3 sm:p-4 focus:outline-none",
+      },
     },
   });
 
@@ -159,286 +162,317 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
       type="button"
       onClick={onClick}
       title={title}
-      className={`px-2 py-1.5 rounded text-sm transition-colors ${active ? "bg-blue-100 text-blue-700 font-bold" : "text-gray-600 hover:bg-gray-100"}`}
+      className={`min-w-[36px] h-9 px-2 rounded text-sm transition-colors flex items-center justify-center ${active ? "bg-blue-100 text-blue-700 font-bold" : "text-gray-600 hover:bg-gray-100"}`}
     >
       {children}
     </button>
   );
-  const Div = () => <div className="w-px h-5 bg-gray-200 mx-1 self-center" />;
+
+  const Div = () => <div className="w-px h-5 bg-gray-200 mx-0.5 self-center shrink-0" />;
 
   return (
     <div className="border border-gray-300 rounded-xl overflow-visible bg-white shadow-sm">
-      <div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap items-center gap-0.5 rounded-t-xl sticky top-[80px] z-10">
-        <select
-          className="text-sm border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 mr-1"
-          value={
-            editor.isActive("heading", { level: 1 })
-              ? "h1"
-              : editor.isActive("heading", { level: 2 })
-                ? "h2"
-                : editor.isActive("heading", { level: 3 })
-                  ? "h3"
-                  : "paragraph"
-          }
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v === "paragraph") editor.chain().focus().setParagraph().run();
-            else
-              editor
-                .chain()
-                .focus()
-                .toggleHeading({ level: parseInt(v[1]) as 1 | 2 | 3 })
-                .run();
-          }}
-        >
-          <option value="paragraph">本文</option>
-          <option value="h1">見出し1</option>
-          <option value="h2">見出し2</option>
-          <option value="h3">見出し3</option>
-        </select>
-        <select
-          className="text-sm border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 mr-1"
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) editor.chain().focus().unsetFontFamily().run();
-            else editor.chain().focus().setFontFamily(v).run();
-          }}
-          defaultValue=""
-        >
-          {FONT_FAMILIES.map((f) => (
-            <option key={f.value} value={f.value}>
-              {f.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="text-sm border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 mr-1"
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) (editor.chain().focus() as any).unsetFontSize().run();
-            else (editor.chain().focus() as any).setFontSize(`${v}px`).run();
-          }}
-          defaultValue=""
-        >
-          <option value="">サイズ</option>
-          {FONT_SIZES.map((s) => (
-            <option key={s} value={s}>
-              {s}px
-            </option>
-          ))}
-        </select>
-        <Div />
-        <TB
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive("bold")}
-          title="太字"
-        >
-          <strong>B</strong>
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive("italic")}
-          title="イタリック"
-        >
-          <em>I</em>
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive("underline")}
-          title="下線"
-        >
-          <span className="underline">U</span>
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive("strike")}
-          title="取り消し線"
-        >
-          <span className="line-through">S</span>
-        </TB>
-        <Div />
-        <div className="relative" ref={colorRef}>
-          <button
-            type="button"
-            title="文字色"
-            onClick={() => setShowColorPicker((v) => !v)}
-            className="flex flex-col items-center px-2 py-1 rounded hover:bg-gray-100"
+      {/* ツールバー：スマホは横スクロール、PCはsticky */}
+      <div className="border-b border-gray-200 bg-gray-50 rounded-t-xl sm:sticky sm:top-[64px] sm:z-10">
+        <div className="flex items-center gap-0 overflow-x-auto scrollbar-none p-1.5 sm:p-2 sm:flex-wrap">
+          {/* 見出し */}
+          <select
+            className="text-sm border border-gray-200 rounded px-1.5 py-1.5 bg-white text-gray-700 mr-1 shrink-0 h-9"
+            value={
+              editor.isActive("heading", { level: 1 })
+                ? "h1"
+                : editor.isActive("heading", { level: 2 })
+                  ? "h2"
+                  : editor.isActive("heading", { level: 3 })
+                    ? "h3"
+                    : "paragraph"
+            }
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "paragraph") editor.chain().focus().setParagraph().run();
+              else
+                editor
+                  .chain()
+                  .focus()
+                  .toggleHeading({ level: parseInt(v[1]) as 1 | 2 | 3 })
+                  .run();
+            }}
           >
-            <span className="text-sm font-bold text-gray-700">A</span>
-            <span
-              className="h-1 w-5 rounded-sm mt-0.5"
-              style={{ backgroundColor: editor.getAttributes("textStyle").color ?? "#000000" }}
-            />
-          </button>
-          {showColorPicker && (
-            <div className="absolute top-9 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-48">
-              <div className="grid grid-cols-6 gap-1.5">
-                {COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      editor.chain().focus().setColor(c).run();
-                      setShowColorPicker(false);
-                    }}
-                    className="w-6 h-6 rounded border border-gray-200 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: c }}
-                    title={c}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  editor.chain().focus().unsetColor().run();
-                  setShowColorPicker(false);
-                }}
-                className="mt-2 text-xs text-gray-500 hover:text-gray-700 w-full text-center"
-              >
-                色をリセット
-              </button>
-            </div>
-          )}
-        </div>
-        <Div />
-        <TB
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          active={editor.isActive({ textAlign: "left" })}
-          title="左揃え"
-        >
-          左
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          active={editor.isActive({ textAlign: "center" })}
-          title="中央揃え"
-        >
-          中
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          active={editor.isActive({ textAlign: "right" })}
-          title="右揃え"
-        >
-          右
-        </TB>
-        <Div />
-        <TB
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive("bulletList")}
-          title="箇条書き"
-        >
-          • ≡
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive("orderedList")}
-          title="番号付きリスト"
-        >
-          1.≡
-        </TB>
-        <Div />
-        <TB
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive("blockquote")}
-          title="引用"
-        >
-          ❝
-        </TB>
-        <TB
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          active={editor.isActive("codeBlock")}
-          title="コード"
-        >
-          {"</>"}
-        </TB>
-        <Div />
-        <div className="relative">
+            <option value="paragraph">本文</option>
+            <option value="h1">見出し1</option>
+            <option value="h2">見出し2</option>
+            <option value="h3">見出し3</option>
+          </select>
+
+          {/* フォント */}
+          <select
+            className="text-sm border border-gray-200 rounded px-1.5 py-1.5 bg-white text-gray-700 mr-1 shrink-0 h-9"
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) editor.chain().focus().unsetFontFamily().run();
+              else editor.chain().focus().setFontFamily(v).run();
+            }}
+            defaultValue=""
+          >
+            {FONT_FAMILIES.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+
+          {/* サイズ */}
+          <select
+            className="text-sm border border-gray-200 rounded px-1.5 py-1.5 bg-white text-gray-700 mr-1 shrink-0 h-9"
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) (editor.chain().focus() as any).unsetFontSize().run();
+              else (editor.chain().focus() as any).setFontSize(`${v}px`).run();
+            }}
+            defaultValue=""
+          >
+            <option value="">サイズ</option>
+            {FONT_SIZES.map((s) => (
+              <option key={s} value={s}>
+                {s}px
+              </option>
+            ))}
+          </select>
+
+          <Div />
+
           <TB
-            onClick={() => setShowLinkInput((v) => !v)}
-            active={editor.isActive("link")}
-            title="リンク"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive("bold")}
+            title="太字"
           >
-            🔗
+            <strong>B</strong>
           </TB>
-          {showLinkInput && (
-            <div className="absolute top-9 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-72">
-              <p className="text-xs font-bold text-gray-600 mb-2">URLを入力</p>
-              <input
-                type="url"
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-400 mb-2"
-                onKeyDown={(e) => e.key === "Enter" && applyLink()}
-                autoFocus
+          <TB
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive("italic")}
+            title="イタリック"
+          >
+            <em>I</em>
+          </TB>
+          <TB
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={editor.isActive("underline")}
+            title="下線"
+          >
+            <span className="underline">U</span>
+          </TB>
+          <TB
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive("strike")}
+            title="取り消し線"
+          >
+            <span className="line-through">S</span>
+          </TB>
+
+          <Div />
+
+          {/* 文字色 */}
+          <div className="relative shrink-0" ref={colorRef}>
+            <button
+              type="button"
+              title="文字色"
+              onClick={() => setShowColorPicker((v) => !v)}
+              className="flex flex-col items-center min-w-[36px] h-9 px-2 rounded hover:bg-gray-100 justify-center"
+            >
+              <span className="text-sm font-bold text-gray-700 leading-none">A</span>
+              <span
+                className="h-1 w-5 rounded-sm mt-0.5"
+                style={{ backgroundColor: editor.getAttributes("textStyle").color ?? "#000000" }}
               />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={applyLink}
-                  className="flex-1 bg-blue-500 text-white text-xs rounded-lg py-1.5 font-bold hover:bg-blue-600"
-                >
-                  適用
-                </button>
+            </button>
+            {showColorPicker && (
+              <div className="absolute top-10 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-48">
+                <div className="grid grid-cols-6 gap-1.5">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        editor.chain().focus().setColor(c).run();
+                        setShowColorPicker(false);
+                      }}
+                      className="w-6 h-6 rounded border border-gray-200 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: c }}
+                      title={c}
+                    />
+                  ))}
+                </div>
                 <button
                   type="button"
                   onClick={() => {
-                    editor.chain().focus().unsetLink().run();
-                    setShowLinkInput(false);
+                    editor.chain().focus().unsetColor().run();
+                    setShowColorPicker(false);
                   }}
-                  className="flex-1 border border-gray-200 text-xs rounded-lg py-1.5 text-gray-600 hover:bg-gray-50"
+                  className="mt-2 text-xs text-gray-500 hover:text-gray-700 w-full text-center"
                 >
-                  解除
+                  色をリセット
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-        <div className="relative">
-          <TB onClick={() => setShowImageInput((v) => !v)} active={false} title="画像">
-            🖼️
+            )}
+          </div>
+
+          <Div />
+
+          <TB
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            active={editor.isActive({ textAlign: "left" })}
+            title="左揃え"
+          >
+            左
           </TB>
-          {showImageInput && (
-            <div className="absolute top-9 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-72">
-              <p className="text-xs font-bold text-gray-600 mb-2">画像URL</p>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-400 mb-2"
-                onKeyDown={(e) => e.key === "Enter" && insertImage()}
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={insertImage}
-                className="w-full bg-blue-500 text-white text-xs rounded-lg py-1.5 font-bold hover:bg-blue-600"
-              >
-                挿入
-              </button>
-            </div>
-          )}
-        </div>
-        <Div />
-        <TB
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          active={false}
-          title="区切り線"
-        >
-          —
-        </TB>
-        <div className="ml-auto flex gap-0.5">
-          <TB onClick={() => editor.chain().focus().undo().run()} active={false} title="元に戻す">
-            ↩
+          <TB
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            active={editor.isActive({ textAlign: "center" })}
+            title="中央揃え"
+          >
+            中
           </TB>
-          <TB onClick={() => editor.chain().focus().redo().run()} active={false} title="やり直し">
-            ↪
+          <TB
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            active={editor.isActive({ textAlign: "right" })}
+            title="右揃え"
+          >
+            右
           </TB>
+
+          <Div />
+
+          <TB
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive("bulletList")}
+            title="箇条書き"
+          >
+            • ≡
+          </TB>
+          <TB
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive("orderedList")}
+            title="番号付きリスト"
+          >
+            1.≡
+          </TB>
+
+          <Div />
+
+          <TB
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            active={editor.isActive("blockquote")}
+            title="引用"
+          >
+            ❝
+          </TB>
+          <TB
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            active={editor.isActive("codeBlock")}
+            title="コード"
+          >
+            {"</>"}
+          </TB>
+
+          <Div />
+
+          {/* リンク */}
+          <div className="relative shrink-0">
+            <TB
+              onClick={() => setShowLinkInput((v) => !v)}
+              active={editor.isActive("link")}
+              title="リンク"
+            >
+              🔗
+            </TB>
+            {showLinkInput && (
+              <div className="absolute top-10 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-72">
+                <p className="text-xs font-bold text-gray-600 mb-2">URLを入力</p>
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-400 mb-2"
+                  onKeyDown={(e) => e.key === "Enter" && applyLink()}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={applyLink}
+                    className="flex-1 bg-blue-500 text-white text-xs rounded-lg py-1.5 font-bold hover:bg-blue-600"
+                  >
+                    適用
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      editor.chain().focus().unsetLink().run();
+                      setShowLinkInput(false);
+                    }}
+                    className="flex-1 border border-gray-200 text-xs rounded-lg py-1.5 text-gray-600 hover:bg-gray-50"
+                  >
+                    解除
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 画像 */}
+          <div className="relative shrink-0">
+            <TB onClick={() => setShowImageInput((v) => !v)} active={false} title="画像">
+              🖼️
+            </TB>
+            {showImageInput && (
+              <div className="absolute top-10 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-72">
+                <p className="text-xs font-bold text-gray-600 mb-2">画像URL</p>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-400 mb-2"
+                  onKeyDown={(e) => e.key === "Enter" && insertImage()}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={insertImage}
+                  className="w-full bg-blue-500 text-white text-xs rounded-lg py-1.5 font-bold hover:bg-blue-600"
+                >
+                  挿入
+                </button>
+              </div>
+            )}
+          </div>
+
+          <Div />
+
+          <TB
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            active={false}
+            title="区切り線"
+          >
+            —
+          </TB>
+
+          <div className="ml-auto flex gap-0 shrink-0">
+            <TB onClick={() => editor.chain().focus().undo().run()} active={false} title="元に戻す">
+              ↩
+            </TB>
+            <TB onClick={() => editor.chain().focus().redo().run()} active={false} title="やり直し">
+              ↪
+            </TB>
+          </div>
         </div>
       </div>
+
       <style>{`
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
         .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: #adb5bd; pointer-events: none; height: 0; }
         .ProseMirror h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
         .ProseMirror h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
