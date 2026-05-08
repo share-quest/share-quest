@@ -1757,178 +1757,174 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <ArticleEditorTabs
-              settingsPanel={
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+            <div className="md:grid md:grid-cols-[360px_1fr] md:gap-6 space-y-6 md:space-y-0 items-start">
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">連載</label>
+                  <select
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    value={formSeriesId}
+                    onChange={(e) => setFormSeriesId(e.target.value)}
+                  >
+                    <option value="">連載なし（単発記事）</option>
+                    {seriesList
+                      .filter((s) => s.writerId === currentUserId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.title}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                {formSeriesId && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">連載</label>
-                    <select
+                    <label className="block text-sm font-bold text-gray-700 mb-1">話数</label>
+                    <input
+                      type="number"
+                      min={1}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      value={formSeriesId}
-                      onChange={(e) => setFormSeriesId(e.target.value)}
-                    >
-                      <option value="">連載なし（単発記事）</option>
-                      {seriesList
-                        .filter((s) => s.writerId === currentUserId)
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.title}
-                          </option>
-                        ))}
-                    </select>
+                      placeholder="例: 1"
+                      value={formEpisodeNumber}
+                      onChange={(e) => setFormEpisodeNumber(e.target.value)}
+                    />
                   </div>
-                  {formSeriesId && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">話数</label>
-                      <input
-                        type="number"
-                        min={1}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="例: 1"
-                        value={formEpisodeNumber}
-                        onChange={(e) => setFormEpisodeNumber(e.target.value)}
+                )}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    タイトル <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="記事のタイトルを入力"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    要約{" "}
+                    <span className="text-gray-400 font-normal text-xs">
+                      （記事の冒頭に表示されます）
+                    </span>
+                  </label>
+                  <textarea
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                    rows={3}
+                    placeholder="記事の要約を入力（省略可）"
+                    value={formSummary}
+                    onChange={(e) => setFormSummary(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    サムネイルカラー
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {THUMBNAIL_COLORS.map((color) => (
+                      <button
+                        key={color.id}
+                        onClick={() => setFormColor(color.id)}
+                        className={`w-10 h-10 rounded-full ${color.bg} border-4 transition-all ${formColor === color.id ? "border-gray-700 scale-110" : "border-transparent"}`}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    選択中: {getThumbnailColor(formColor).label}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    サムネイル画像{" "}
+                    <span className="text-gray-400 font-normal text-xs">(推奨: 1920×1080px)</span>
+                  </label>
+                  {thumbnailUrl && (
+                    <div
+                      className="mb-2 rounded-xl overflow-hidden border border-gray-200"
+                      style={{ aspectRatio: "16/9", maxHeight: "240px" }}
+                    >
+                      <img
+                        src={thumbnailUrl}
+                        alt="thumbnail"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   )}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">
-                      タイトル <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="記事のタイトルを入力"
-                      value={formTitle}
-                      onChange={(e) => setFormTitle(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">
-                      要約{" "}
-                      <span className="text-gray-400 font-normal text-xs">
-                        （記事の冒頭に表示されます）
-                      </span>
-                    </label>
-                    <textarea
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-                      rows={3}
-                      placeholder="記事の要約を入力（省略可）"
-                      value={formSummary}
-                      onChange={(e) => setFormSummary(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      サムネイルカラー
-                    </label>
-                    <div className="flex gap-2 flex-wrap">
-                      {THUMBNAIL_COLORS.map((color) => (
-                        <button
-                          key={color.id}
-                          onClick={() => setFormColor(color.id)}
-                          className={`w-10 h-10 rounded-full ${color.bg} border-4 transition-all ${formColor === color.id ? "border-gray-700 scale-110" : "border-transparent"}`}
-                          title={color.label}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      選択中: {getThumbnailColor(formColor).label}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      サムネイル画像{" "}
-                      <span className="text-gray-400 font-normal text-xs">(推奨: 1920×1080px)</span>
+                  <div className="flex items-center gap-3">
+                    <label className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-200 cursor-pointer border border-gray-200">
+                      {thumbnailUploading
+                        ? "アップロード中..."
+                        : thumbnailUrl
+                          ? "画像を変更"
+                          : "画像をアップロード"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => void handleThumbnailUpload(e)}
+                        disabled={thumbnailUploading}
+                      />
                     </label>
                     {thumbnailUrl && (
-                      <div
-                        className="mb-2 rounded-xl overflow-hidden border border-gray-200"
-                        style={{ aspectRatio: "16/9", maxHeight: "240px" }}
-                      >
-                        <img
-                          src={thumbnailUrl}
-                          alt="thumbnail"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <label className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-200 cursor-pointer border border-gray-200">
-                        {thumbnailUploading
-                          ? "アップロード中..."
-                          : thumbnailUrl
-                            ? "画像を変更"
-                            : "画像をアップロード"}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => void handleThumbnailUpload(e)}
-                          disabled={thumbnailUploading}
-                        />
-                      </label>
-                      {thumbnailUrl && (
-                        <button
-                          onClick={() => setThumbnailUrl(null)}
-                          className="text-sm text-red-500 hover:text-red-700"
-                        >
-                          削除
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">JPG / PNG · 10MB以下</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">タグ</label>
-                    <div className="flex flex-wrap gap-1 mb-2 min-h-[28px] max-w-xs">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
-                        >
-                          {tag}
-                          <button
-                            onClick={() => removeTag(tag)}
-                            className="hover:text-red-500 font-bold leading-none"
-                          >
-                            &times;
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="タグを入力（Enterまたはカンマで追加）"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === ",") {
-                            e.preventDefault();
-                            addTag(tagInput);
-                          }
-                        }}
-                      />
                       <button
-                        onClick={() => addTag(tagInput)}
-                        className="px-3 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700"
+                        onClick={() => setThumbnailUrl(null)}
+                        className="text-sm text-red-500 hover:text-red-700"
                       >
-                        追加
+                        削除
                       </button>
-                    </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">JPG / PNG · 10MB以下</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">タグ</label>
+                  <div className="flex flex-wrap gap-1 mb-2 min-h-[28px] max-w-xs">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
+                      >
+                        {tag}
+                        <button
+                          onClick={() => removeTag(tag)}
+                          className="hover:text-red-500 font-bold leading-none"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      placeholder="タグを入力（Enterまたはカンマで追加）"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          addTag(tagInput);
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => addTag(tagInput)}
+                      className="px-3 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700"
+                    >
+                      追加
+                    </button>
                   </div>
                 </div>
-              }
-              editorPanel={
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">本文</label>
-                  <RichTextEditor
-                    content={formContent}
-                    onChange={setFormContent}
-                    placeholder="記事の本文を入力してください"
-                  />
-                </div>
-              }
-            />
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <label className="block text-sm font-bold text-gray-700 mb-2">本文</label>
+                <RichTextEditor
+                  content={formContent}
+                  onChange={setFormContent}
+                  placeholder="記事の本文を入力してください"
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>
