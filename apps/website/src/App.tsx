@@ -401,14 +401,9 @@ export default function App() {
           if (error) console.error("fav delete:", error);
         });
       setFavorites(favorites.filter((id) => id !== articleId));
-      const curLikes1 = articles.find((a) => a.id === articleId)?.likes ?? 1;
-      supabase
-        .from("articles")
-        .update({ likes: Math.max(0, curLikes1 - 1) })
-        .eq("id", articleId)
-        .then(({ error }) => {
-          if (error) console.error("likes dec:", error);
-        });
+      supabase.rpc("decrement_likes", { p_article_id: articleId }).then(({ error }) => {
+        if (error) console.error("likes dec:", error);
+      });
       setArticles((prev) =>
         prev.map((a) => (a.id === articleId ? { ...a, likes: Math.max(0, a.likes - 1) } : a)),
       );
@@ -421,14 +416,9 @@ export default function App() {
           if (error) console.error("fav insert:", error);
         });
       setFavorites([...favorites, articleId]);
-      const curLikes2 = articles.find((a) => a.id === articleId)?.likes ?? 0;
-      supabase
-        .from("articles")
-        .update({ likes: curLikes2 + 1 })
-        .eq("id", articleId)
-        .then(({ error }) => {
-          if (error) console.error("likes inc:", error);
-        });
+      supabase.rpc("increment_likes", { p_article_id: articleId }).then(({ error }) => {
+        if (error) console.error("likes inc:", error);
+      });
       setArticles((prev) =>
         prev.map((a) => (a.id === articleId ? { ...a, likes: a.likes + 1 } : a)),
       );
