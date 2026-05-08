@@ -322,6 +322,11 @@ export default function App() {
   const [draftSeriesId, setDraftSeriesId] = useState("");
   const [draftEpisodeNumber, setDraftEpisodeNumber] = useState("");
   const [draftThumbnailUrl, setDraftThumbnailUrl] = useState<string | null>(null);
+  const [draftSummary, setDraftSummary] = useState("");
+  const [draftTagInput, setDraftTagInput] = useState("");
+  const [editorSaving, setEditorSaving] = useState(false);
+  const [editorShowPreview, setEditorShowPreview] = useState(false);
+  const [editorThumbnailUploading, setEditorThumbnailUploading] = useState(false);
   const viewedArticleIds = useMemo(() => new Set<string>(), []);
   useEffect(() => {
     if (currentView !== "article" || !viewParam) return;
@@ -1555,12 +1560,15 @@ export default function App() {
     const [tags, setTags] = [draftTags, setDraftTags];
     const [formSeriesId, setFormSeriesId] = [draftSeriesId, setDraftSeriesId];
     const [formEpisodeNumber, setFormEpisodeNumber] = [draftEpisodeNumber, setDraftEpisodeNumber];
-    const [formSummary, setFormSummary] = useState(editingArticle?.summary ?? "");
-    const [tagInput, setTagInput] = useState("");
-    const [saving, setSaving] = useState(false);
-    const [showPreview, setShowPreview] = useState(false);
+    const [formSummary, setFormSummary] = [draftSummary, setDraftSummary];
+    const [tagInput, setTagInput] = [draftTagInput, setDraftTagInput];
+    const [saving, setSaving] = [editorSaving, setEditorSaving];
+    const [showPreview, setShowPreview] = [editorShowPreview, setEditorShowPreview];
     const [thumbnailUrl, setThumbnailUrl] = [draftThumbnailUrl, setDraftThumbnailUrl];
-    const [thumbnailUploading, setThumbnailUploading] = useState(false);
+    const [thumbnailUploading, setThumbnailUploading] = [
+      editorThumbnailUploading,
+      setEditorThumbnailUploading,
+    ];
     useEffect(() => {
       setDraftTitle(editingArticle?.title ?? "");
       setDraftContent(editingArticle?.content ?? "");
@@ -1569,6 +1577,11 @@ export default function App() {
       setDraftSeriesId(editingArticle?.seriesId ?? "");
       setDraftEpisodeNumber(editingArticle?.episodeNumber?.toString() ?? "");
       setDraftThumbnailUrl(editingArticle?.thumbnailUrl ?? null);
+      setDraftSummary(editingArticle?.summary ?? "");
+      setDraftTagInput("");
+      setEditorSaving(false);
+      setEditorShowPreview(false);
+      setEditorThumbnailUploading(false);
     }, [editingId]);
 
     const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
