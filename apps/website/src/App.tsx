@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import type { Profile } from "./supabase";
-import { ChevronLeft, Share2, Eye, X, Plus, Edit3, Check, AlertCircle } from "lucide-react";
+import { ChevronLeft, Share2, Eye, X, Plus, Edit3, Check, AlertCircle, Home } from "lucide-react";
 import { sanitizeHtml } from "./utils/sanitize";
 import { ContactView } from "./components/ContactView";
 
@@ -43,6 +43,13 @@ import imgRecommend from "./assets/recommend_icon.png";
 const LogoIcon = ({ className = "w-8 h-8" }) => (
   <img src={imgLogo} className={`${className} object-cover rounded`} alt="Logo" />
 );
+const CustomHomeIcon = ({
+  className = "w-6 h-6",
+  active = false,
+}: {
+  className?: string;
+  active?: boolean;
+}) => <Home className={`${className} ${active ? "text-blue-600" : "text-gray-400"}`} />;
 const CustomSearchIcon = ({
   className = "w-6 h-6",
   active,
@@ -652,13 +659,13 @@ const ArticleEditorPage = ({
                   </label>
                   {thumbnailUrl && (
                     <div
-                      className="mb-2 rounded-xl overflow-hidden border border-gray-200"
+                      className="mb-2 rounded-xl overflow-hidden border border-gray-200 bg-gray-50"
                       style={{ aspectRatio: "16/9", maxHeight: "240px" }}
                     >
                       <img
                         src={thumbnailUrl}
                         alt="thumbnail"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
@@ -1033,12 +1040,23 @@ export default function App() {
   // --- Header ---
   const Header = () => (
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm w-full">
-      <div className="flex items-center justify-center sm:justify-between px-4 md:px-8 py-3 max-w-6xl mx-auto w-full">
+      <div className="flex items-center justify-center sm:justify-between px-4 md:px-8 py-1.5 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("home")}>
-          <LogoIcon className="w-10 h-10" />
-          <img src={imgTitle} className="h-14 object-contain inline-block" alt="SHARE Quest" />
+          <LogoIcon className="w-8 h-8" />
+          <img src={imgTitle} className="h-10 object-contain inline-block" alt="SHARE Quest" />
         </div>
         <div className="hidden sm:flex items-center gap-2">
+          <button
+            onClick={() => navigate("home")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${currentView === "home" ? "bg-gray-50" : ""}`}
+          >
+            <CustomHomeIcon active={currentView === "home"} />
+            <span
+              className={`text-sm font-bold ${currentView === "home" ? "text-blue-600" : "text-gray-600"}`}
+            >
+              トップ
+            </span>
+          </button>
           <button
             onClick={() => navigate("search")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${currentView === "search" ? "bg-gray-50" : ""}`}
@@ -1097,6 +1115,17 @@ export default function App() {
   // --- MobileNav ---
   const MobileNav = () => (
     <nav className="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex items-center justify-around pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 z-50">
+      <button
+        onClick={() => navigate("home")}
+        className="flex flex-col items-center justify-center gap-1 w-16"
+      >
+        <CustomHomeIcon active={currentView === "home"} />
+        <span
+          className={`text-[10px] ${currentView === "home" ? "text-blue-600 font-bold" : "text-gray-500"}`}
+        >
+          トップ
+        </span>
+      </button>
       <button
         onClick={() => navigate("search")}
         className="flex flex-col items-center justify-center gap-1 w-16"
@@ -1169,13 +1198,13 @@ export default function App() {
           const color = getThumbnailColor(article.thumbnailColor ?? null);
           return article.thumbnailUrl ? (
             <div
-              className={`${layout === "horizontal" ? "w-1/3 min-w-[110px] h-full" : "w-full"} overflow-hidden`}
+              className={`${layout === "horizontal" ? "w-1/3 min-w-[110px] h-full" : "w-full"} overflow-hidden bg-gray-50`}
               style={layout !== "horizontal" ? { aspectRatio: "16/9" } : {}}
             >
               <img
                 src={article.thumbnailUrl}
                 alt={article.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           ) : (
@@ -1288,11 +1317,11 @@ export default function App() {
           </button>
         </div>
         {article.thumbnailUrl ? (
-          <div className="w-full" style={{ aspectRatio: "16/9" }}>
+          <div className="w-full bg-gray-50" style={{ aspectRatio: "16/9" }}>
             <img
               src={article.thumbnailUrl}
               alt={article.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         ) : (
