@@ -1466,24 +1466,27 @@ export default function App() {
                   ))}
               </div>
             </section>
+            {hasFilter && (
+              <button
+                onClick={() => {
+                  setKeyword("");
+                  setSelectedTags([]);
+                  setSelectedWriterIds([]);
+                }}
+                className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl border border-gray-200 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <X className="w-5 h-5" />
+                フィルターをリセット
+              </button>
+            )}
           </div>
           <div>
             {hasFilter && (
               <div>
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3">
                   <p className="font-bold text-gray-700">検索結果 ({results.length}件)</p>
-                  <button
-                    onClick={() => {
-                      setKeyword("");
-                      setSelectedTags([]);
-                      setSelectedWriterIds([]);
-                    }}
-                    className="text-xs text-gray-500 underline"
-                  >
-                    フィルターをリセット
-                  </button>
                 </div>
-                <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+                <div className="space-y-3">
                   {results.length === 0 ? (
                     <p className="text-gray-500 text-center py-8 bg-white rounded-xl border">
                       該当する記事が見つかりませんでした
