@@ -427,7 +427,7 @@ const ArticleEditorPage = ({
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("writerDash")}
+            onClick={() => window.history.back()}
             className="p-2 rounded-full hover:bg-gray-100"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -684,6 +684,20 @@ export default function App() {
           .single()
           .then(({ data }) => {
             if (data) {
+              const meta = session.user.user_metadata ?? {};
+              const updates: Record<string, string> = {};
+              if (!data.display_name && meta.display_name) updates.display_name = meta.display_name;
+              if (!data.username && meta.username) updates.username = meta.username;
+              if (Object.keys(updates).length > 0) {
+                void supabase
+                  .from("profiles")
+                  .update(updates)
+                  .eq("id", session.user.id)
+                  .then(({ data: updated }) => {
+                    if (updated) Object.assign(data, updates);
+                  });
+                Object.assign(data, updates);
+              }
               setProfile(data);
               setUserRole(data.role);
             }
@@ -1738,10 +1752,10 @@ export default function App() {
     };
 
     return (
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
+      <div className="p-4 md:p-8 animate-in slide-in-from-right-8 duration-300">
+        <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => navigate("writerDash")}
+            onClick={() => window.history.back()}
             className="p-2 rounded-xl hover:bg-gray-100"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -1749,30 +1763,31 @@ export default function App() {
           <h1 className="text-xl font-bold text-gray-900">連載管理</h1>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-          <h2 className="font-bold text-gray-800">新しい連載を作成</h2>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="連載名 *"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-          />
-          <textarea
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-            placeholder="連載の説明（任意）"
-            rows={3}
-            value={newDesc}
-            onChange={(e) => setNewDesc(e.target.value)}
-          />
-          <button
-            onClick={handleCreate}
-            disabled={saving}
-            className="w-full bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 disabled:opacity-50"
-          >
-            {saving ? "作成中..." : "連載を作成"}
-          </button>
+        <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start space-y-6 md:space-y-0">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <h2 className="font-bold text-gray-800">新しい連載を作成</h2>
+            <input
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="連載名 *"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+            <textarea
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+              placeholder="連載の説明（任意）"
+              rows={3}
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+            />
+            <button
+              onClick={handleCreate}
+              disabled={saving}
+              className="w-full bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 disabled:opacity-50"
+            >
+              {saving ? "作成中..." : "連載を作成"}
+            </button>
+          </div>
         </div>
-
         <div className="space-y-3">
           <h2 className="font-bold text-gray-800">作成済みの連載</h2>
           {mySeries.length === 0 ? (
@@ -1920,7 +1935,7 @@ export default function App() {
       <div className="p-4 md:p-8 space-y-6 animate-in slide-in-from-right-8 duration-300">
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => navigate("settings")}
+            onClick={() => window.history.back()}
             className="p-2 bg-white rounded-full shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -2015,7 +2030,7 @@ export default function App() {
       <div className="p-4 space-y-6 animate-in slide-in-from-right-8 duration-300">
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => navigate("settings")}
+            onClick={() => window.history.back()}
             className="p-2 bg-white rounded-full shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -2260,6 +2275,7 @@ export default function App() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [displayName, setDisplayName] = useState("");
+    const [username, setUsername] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const nav = useNavigate();
@@ -2270,7 +2286,7 @@ export default function App() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { display_name: displayName } },
+        options: { data: { display_name: displayName, username: username.trim() } },
       });
       if (error) setError(error.message);
       else {
@@ -2288,9 +2304,16 @@ export default function App() {
           <div className="space-y-4">
             <input
               type="text"
-              placeholder="表示名"
+              placeholder="表示名 *"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="ユーザー名（英数字・アンダースコアのみ）"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
