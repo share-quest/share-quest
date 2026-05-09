@@ -1670,7 +1670,7 @@ export default function App() {
       </div>
       {userRole === "writer" && (
         <button
-          onClick={() => navigate("writerDash")}
+          onClick={() => nav(-1)}
           className="w-full p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold shadow-md flex items-center justify-between"
         >
           <span>ライター用ダッシュボードを開く</span>
@@ -1787,87 +1787,87 @@ export default function App() {
               {saving ? "作成中..." : "連載を作成"}
             </button>
           </div>
-        </div>
-        <div className="space-y-3">
-          <h2 className="font-bold text-gray-800">作成済みの連載</h2>
-          {mySeries.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">連載はまだありません</p>
-          ) : (
-            mySeries.map((s) => {
-              const seriesArticles = articles
-                .filter((a) => a.seriesId === s.id)
-                .sort((a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0));
-              const expanded = expandedSeriesId === s.id;
-              return (
-                <div
-                  key={s.id}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-                >
-                  <div className="p-4 flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900">{s.title}</p>
-                      {s.description && (
-                        <p className="text-sm text-gray-500 mt-0.5">{s.description}</p>
-                      )}
+          <div className="space-y-3">
+            <h2 className="font-bold text-gray-800">作成済みの連載</h2>
+            {mySeries.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">連載はまだありません</p>
+            ) : (
+              mySeries.map((s) => {
+                const seriesArticles = articles
+                  .filter((a) => a.seriesId === s.id)
+                  .sort((a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0));
+                const expanded = expandedSeriesId === s.id;
+                return (
+                  <div
+                    key={s.id}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                  >
+                    <div className="p-4 flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900">{s.title}</p>
+                        {s.description && (
+                          <p className="text-sm text-gray-500 mt-0.5">{s.description}</p>
+                        )}
+                        <button
+                          onClick={() => setExpandedSeriesId(expanded ? null : s.id)}
+                          className="text-xs text-blue-500 hover:text-blue-700 mt-1 flex items-center gap-1"
+                        >
+                          {seriesArticles.length}件の記事
+                          <span>{expanded ? "▲" : "▼"}</span>
+                        </button>
+                      </div>
                       <button
-                        onClick={() => setExpandedSeriesId(expanded ? null : s.id)}
-                        className="text-xs text-blue-500 hover:text-blue-700 mt-1 flex items-center gap-1"
+                        onClick={() => handleDelete(s.id, s.title)}
+                        className="text-red-400 hover:text-red-600 text-sm font-bold shrink-0"
                       >
-                        {seriesArticles.length}件の記事
-                        <span>{expanded ? "▲" : "▼"}</span>
+                        削除
                       </button>
                     </div>
-                    <button
-                      onClick={() => handleDelete(s.id, s.title)}
-                      className="text-red-400 hover:text-red-600 text-sm font-bold shrink-0"
-                    >
-                      削除
-                    </button>
-                  </div>
-                  {expanded && (
-                    <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
-                      {seriesArticles.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-2">
-                          この連載にはまだ記事がありません
-                        </p>
-                      ) : (
-                        seriesArticles.map((a) => (
-                          <div
-                            key={a.id}
-                            className="flex items-center gap-3 bg-white rounded-xl px-3 py-2 border border-gray-100"
-                          >
-                            <span className="text-xs text-gray-400 w-8 shrink-0">
-                              {a.episodeNumber != null ? `#${a.episodeNumber}` : "—"}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-800 truncate">
-                                {a.title}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {a.status === "published"
-                                  ? "公開中"
-                                  : a.status === "draft"
-                                    ? "下書き"
-                                    : "審査中"}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                navigate("writerEdit", a.id);
-                              }}
-                              className="text-xs text-blue-500 hover:text-blue-700 shrink-0"
+                    {expanded && (
+                      <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
+                        {seriesArticles.length === 0 ? (
+                          <p className="text-xs text-gray-400 text-center py-2">
+                            この連載にはまだ記事がありません
+                          </p>
+                        ) : (
+                          seriesArticles.map((a) => (
+                            <div
+                              key={a.id}
+                              className="flex items-center gap-3 bg-white rounded-xl px-3 py-2 border border-gray-100"
                             >
-                              編集
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+                              <span className="text-xs text-gray-400 w-8 shrink-0">
+                                {a.episodeNumber != null ? `#${a.episodeNumber}` : "—"}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-800 truncate">
+                                  {a.title}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {a.status === "published"
+                                    ? "公開中"
+                                    : a.status === "draft"
+                                      ? "下書き"
+                                      : "審査中"}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  navigate("writerEdit", a.id);
+                                }}
+                                className="text-xs text-blue-500 hover:text-blue-700 shrink-0"
+                              >
+                                編集
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     );
@@ -2039,7 +2039,7 @@ export default function App() {
         </div>
         {userRole === "editor" && (
           <button
-            onClick={() => navigate("writerDash")}
+            onClick={() => nav(-1)}
             className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold shadow-md flex items-center justify-between mb-4"
           >
             <span>記事を書く（ライター機能）</span>
@@ -2610,7 +2610,7 @@ function EditorArticlesView() {
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
       <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+        <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h2 className="text-xl font-bold text-purple-800">全記事の編集・削除</h2>
@@ -2741,7 +2741,7 @@ function EditorRecommendView() {
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
       <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+        <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h2 className="text-xl font-bold text-purple-800">おすすめ・人気設定</h2>
@@ -2855,7 +2855,7 @@ function EditorWritersView() {
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
       <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => nav("/editor-dash")} className="p-2 bg-white rounded-full shadow-sm">
+        <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h2 className="text-xl font-bold text-purple-800">ライター管理</h2>
