@@ -2575,23 +2575,24 @@ export default function App() {
         {currentView === "contact" && <ContactView />}
       </main>
       <footer className="bg-gray-50 border-t border-gray-200 mt-8">
-        <div className="max-w-6xl mx-auto px-6 py-10">
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex flex-col items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-6">
+            <div className="flex flex-col gap-2">
               <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("home")}
               >
-                <LogoIcon className="w-9 h-9" />
-                <img src={imgTitle} className="h-[52px] object-contain" alt="SHARE Quest" />
+                <LogoIcon className="w-8 h-8" />
+                <img src={imgTitle} className="h-10 object-contain" alt="SHARE Quest" />
               </div>
-              <p className="text-xs text-gray-500 text-center leading-relaxed max-w-xs">
+              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">
                 学びの「楽しい！」をつなげる、
                 <br />
                 ライターと読者をつなぐ記事プラットフォーム
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-bold text-gray-700 mb-1">メニュー</p>
               {[
                 { label: "About Us", view: "about" },
                 { label: "プライバシーポリシー", view: "privacy" },
@@ -2601,36 +2602,39 @@ export default function App() {
                 <button
                   key={view}
                   onClick={() => navigate(view)}
-                  className="text-xs text-gray-500 hover:text-blue-600 hover:underline transition-colors font-medium"
+                  className="text-xs text-gray-500 hover:text-blue-600 transition-colors text-left"
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-bold text-gray-700 mb-1">SNS</p>
+
               <a
                 href="https://x.com/SHARE_Quest_Off"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-black transition-colors font-medium"
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-black transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
                 @SHARE_Quest_Off
               </a>
+
               <a
                 href="https://x.com/SHARE_Quest_Off"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-500 hover:text-blue-700 hover:underline transition-colors font-medium"
+                className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
               >
                 ライター応募はXのDMへ →
               </a>
             </div>
-            <div className="w-full border-t border-gray-200 pt-4 text-center">
-              <p className="text-xs text-gray-400">© 2026 SHARE Quest. All rights reserved.</p>
-            </div>
+          </div>
+          <div className="border-t border-gray-200 pt-4">
+            <p className="text-xs text-gray-400">© 2026 SHARE Quest. All rights reserved.</p>
           </div>
         </div>
       </footer>
