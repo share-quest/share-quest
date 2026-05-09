@@ -2351,12 +2351,15 @@ export default function App() {
               {loading ? "ログイン中..." : "ログイン"}
             </button>
           </div>
-          <p className="text-center text-sm text-gray-500 mt-4">
-            アカウント登録は
-            <button onClick={() => nav("/register")} className="text-blue-600 underline ml-1">
-              こちら
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-400 mb-2">アカウントをお持ちでない方</p>
+            <button
+              onClick={() => nav("/register")}
+              className="w-full py-3 border-2 border-blue-500 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-colors"
+            >
+              新規アカウント登録
             </button>
-          </p>
+          </div>
         </div>
       </div>
     );
