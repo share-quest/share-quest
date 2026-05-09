@@ -2446,10 +2446,14 @@ export default function App() {
         {currentView === "writerSeries" && (userRole === "writer" || userRole === "editor") && (
           <WriterSeriesPage />
         )}
-        {currentView === "editorDash" && userRole === "editor" && <EditorDashboard />}
-        {currentView === "editorArticles" && userRole === "editor" && <EditorArticlesView />}
-        {currentView === "editorRecommend" && userRole === "editor" && <EditorRecommendView />}
-        {currentView === "editorWriters" && userRole === "editor" && <EditorWritersView />}
+        {currentView === "editorDash" &&
+          (userRole === "editor" ? <EditorDashboard /> : <AccessDeniedView />)}
+        {currentView === "editorArticles" &&
+          (userRole === "editor" ? <EditorArticlesView /> : <AccessDeniedView />)}
+        {currentView === "editorRecommend" &&
+          (userRole === "editor" ? <EditorRecommendView /> : <AccessDeniedView />)}
+        {currentView === "editorWriters" &&
+          (userRole === "editor" ? <EditorWritersView /> : <AccessDeniedView />)}
         {currentView === "login" && <LoginView />}
         {currentView === "register" && <RegisterView />}
         {currentView === "privacy" && <PrivacyView />}
@@ -3266,22 +3270,34 @@ function AvatarUpload({
 function NotFoundView() {
   const navigate = useNavigate();
   return (
-    <div style={{ textAlign: "center", padding: "80px 24px" }}>
-      <h1 style={{ fontSize: "72px", fontWeight: "bold", margin: 0 }}>404</h1>
-      <p style={{ fontSize: "18px", color: "#666", margin: "16px 0 32px" }}>
-        ページが見つかりませんでした
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+      <p className="text-8xl font-black text-gray-200 select-none mb-2">404</p>
+      <h1 className="text-2xl font-bold text-gray-800 mb-3">ページが見つかりません</h1>
+      <p className="text-gray-500 text-sm mb-8 max-w-xs">
+        URLが間違っているか、削除されたページです。
       </p>
       <button
         onClick={() => navigate("/")}
-        style={{
-          padding: "12px 32px",
-          background: "#111",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
+        className="px-6 py-3 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-700 transition-colors"
+      >
+        トップへ戻る
+      </button>
+    </div>
+  );
+}
+
+function AccessDeniedView() {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+      <p className="text-8xl font-black text-gray-200 select-none mb-2">403</p>
+      <h1 className="text-2xl font-bold text-gray-800 mb-3">アクセスできません</h1>
+      <p className="text-gray-500 text-sm mb-8 max-w-xs">
+        このページは編集長のみアクセス可能です。
+      </p>
+      <button
+        onClick={() => navigate("/")}
+        className="px-6 py-3 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-700 transition-colors"
       >
         トップへ戻る
       </button>
