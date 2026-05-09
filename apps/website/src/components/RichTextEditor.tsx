@@ -168,7 +168,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
 
   return (
     <div className="border border-gray-300 rounded-xl overflow-visible bg-white shadow-sm">
-      <div className="border-b border-gray-200 bg-gray-50 p-2 flex overflow-x-auto flex-nowrap items-center gap-0.5 rounded-t-xl sm:sticky sm:top-[80px] z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap items-center gap-0.5 rounded-t-xl">
         <select
           className="text-sm border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 mr-1"
           value={

@@ -187,14 +187,12 @@ const ArticleEditorTabs = ({
           ⚙️ 設定
         </button>
       </div>
-      <div className="md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-stretch md:h-[calc(100vh-130px)]">
-        <div
-          className={`md:overflow-y-auto md:h-full ${activeTab === "settings" ? "block md:block" : "hidden md:block"}`}
-        >
+      <div className="md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-start">
+        <div className={activeTab === "settings" ? "block md:block" : "hidden md:block"}>
           {settingsPanel}
         </div>
         <div
-          className={`min-w-0 md:overflow-y-auto md:h-full ${activeTab === "editor" ? "block md:block" : "hidden md:block"}`}
+          className={`min-w-0 md:sticky md:top-[64px] md:max-h-[calc(100vh-80px)] md:overflow-y-auto ${activeTab === "editor" ? "block md:block" : "hidden md:block"}`}
         >
           {editorPanel}
         </div>
