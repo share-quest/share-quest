@@ -2292,9 +2292,10 @@ export default function App() {
         </div>
         <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
           <h3 className="font-bold text-gray-800 border-b-2 border-blue-200 pb-2 mb-3 inline-block">
-            協力者
+            エンジニア
           </h3>
           <p className="text-sm text-gray-600">・Noimzip</p>
+          <p className="text-sm text-gray-600 mt-1">・るーと（ライター）</p>
         </div>
         <button
           onClick={() => navigate("home")}

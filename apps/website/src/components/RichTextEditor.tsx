@@ -167,7 +167,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
   const Div = () => <div className="w-px h-5 bg-gray-200 mx-1 self-center" />;
 
   return (
-    <div className="border border-gray-300 rounded-xl overflow-visible bg-white shadow-sm">
+    <div className="border border-gray-300 rounded-xl bg-white shadow-sm">
       <div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap items-center gap-0.5 rounded-t-xl sticky top-0 z-10">
         <select
           className="text-sm border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 mr-1"
