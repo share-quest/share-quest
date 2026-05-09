@@ -191,9 +191,7 @@ const ArticleEditorTabs = ({
         <div className={activeTab === "settings" ? "block md:block" : "hidden md:block"}>
           {settingsPanel}
         </div>
-        <div
-          className={`min-w-0 overflow-hidden ${activeTab === "editor" ? "block md:block" : "hidden md:block"}`}
-        >
+        <div className={`min-w-0 ${activeTab === "editor" ? "block md:block" : "hidden md:block"}`}>
           {editorPanel}
         </div>
       </div>
