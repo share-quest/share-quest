@@ -1594,7 +1594,7 @@ export default function App() {
               {writer.bio}
             </div>
           )}
-          <section>
+          <section className={!writer.bio ? "mt-6" : ""}>
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <span className="bg-blue-100 p-1.5 rounded-lg">
                 <LogoIcon className="w-5 h-5" />
