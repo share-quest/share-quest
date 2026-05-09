@@ -2295,7 +2295,7 @@ export default function App() {
             エンジニア
           </h3>
           <p className="text-sm text-gray-600">・Noimzip</p>
-          <p className="text-sm text-gray-600 mt-1">・るーと（ライター）</p>
+          <p className="text-sm text-gray-600 mt-1">・るーと</p>
         </div>
         <button
           onClick={() => navigate("home")}
