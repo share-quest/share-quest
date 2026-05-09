@@ -1,5 +1,5 @@
 import RichTextEditor from "./components/RichTextEditor";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import type { Profile } from "./supabase";
@@ -422,12 +422,105 @@ const ArticleEditorPage = ({
     setSaving(false);
   };
 
+  const [isDirty, setIsDirty] = useState(false);
+  const autoSaveIdRef = useRef<string | null>(editingId);
+
+  useEffect(() => {
+    if (formTitle || formContent) setIsDirty(true);
+  }, [formTitle, formContent]);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (!isDirty || !formTitle.trim()) return;
+    const timer = setTimeout(async () => {
+      if (autoSaveIdRef.current) {
+        await supabase
+          .from("articles")
+          .update({
+            title: formTitle,
+            content: formContent,
+            tags,
+            thumbnail_color: formColor,
+            thumbnail_url: thumbnailUrl,
+            series_id: formSeriesId || null,
+            episode_number: formEpisodeNumber ? parseInt(formEpisodeNumber) : null,
+          })
+          .eq("id", autoSaveIdRef.current);
+      } else {
+        const { data } = await supabase
+          .from("articles")
+          .insert({
+            title: formTitle,
+            content: formContent,
+            tags,
+            thumbnail_color: formColor,
+            thumbnail_url: thumbnailUrl,
+            writer_id: currentUserId,
+            status: "draft",
+            views: 0,
+            likes: 0,
+            is_recommended: false,
+            is_popular: false,
+            series_id: formSeriesId || null,
+            episode_number: formEpisodeNumber ? parseInt(formEpisodeNumber) : null,
+          })
+          .select()
+          .single();
+        if (data) {
+          autoSaveIdRef.current = data.id;
+          setArticles([
+            ...articles,
+            {
+              id: data.id,
+              title: formTitle,
+              thumbnail: "",
+              thumbnailColor: formColor,
+              thumbnailUrl: thumbnailUrl,
+              writerId: currentUserId ?? "",
+              views: 0,
+              likes: 0,
+              tags,
+              isRecommended: false,
+              isPopular: false,
+              status: "draft",
+              content: formContent,
+              summary: formSummary || undefined,
+              seriesId: formSeriesId || null,
+              episodeNumber: formEpisodeNumber ? parseInt(formEpisodeNumber) : null,
+            },
+          ]);
+        }
+      }
+      setIsDirty(false);
+      showToast("自動保存しました");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [formTitle, formContent, isDirty]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (
+                isDirty &&
+                !window.confirm("保存されていない変更があります。ページを離れますか？")
+              )
+                return;
+              setIsDirty(false);
+              window.history.back();
+            }}
             className="p-2 rounded-full hover:bg-gray-100"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -2748,6 +2841,12 @@ function EditorRecommendView() {
       </div>
       {loading ? (
         <p className="text-center text-gray-400 py-8">読み込み中...</p>
+      ) : articles.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-5xl mb-4">📭</p>
+          <p className="text-gray-500 font-bold">公開済みの記事がありません</p>
+          <p className="text-gray-400 text-sm mt-1">記事が公開されると、ここで設定できます</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {articles.map((a) => (
