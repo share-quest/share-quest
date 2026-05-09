@@ -1032,35 +1032,49 @@ export default function App() {
 
   // --- Header ---
   const Header = () => (
-    <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
+    <header className="sticky top-0 z-50 bg-white border-b shadow-sm w-full">
+      <div className="flex items-center justify-center sm:justify-between px-4 md:px-8 py-3 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("home")}>
           <LogoIcon className="w-10 h-10" />
-          <img
-            src={imgTitle}
-            className="h-14 object-contain hidden sm:inline-block"
-            alt="SHARE Quest"
-          />
+          <img src={imgTitle} className="h-14 object-contain inline-block" alt="SHARE Quest" />
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate("search")} className="p-1 rounded-full hover:bg-gray-100">
+        <div className="hidden sm:flex items-center gap-2">
+          <button
+            onClick={() => navigate("search")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${currentView === "search" ? "bg-gray-50" : ""}`}
+          >
             <CustomSearchIcon active={currentView === "search"} />
+            <span
+              className={`text-sm font-bold ${currentView === "search" ? "text-blue-600" : "text-gray-600"}`}
+            >
+              探す
+            </span>
           </button>
           <button
             onClick={() => navigate("writers")}
-            className="p-1 rounded-full hover:bg-gray-100"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${currentView === "writers" || currentView === "profile" ? "bg-gray-50" : ""}`}
           >
             <CustomUserIcon active={currentView === "writers" || currentView === "profile"} />
+            <span
+              className={`text-sm font-bold ${currentView === "writers" || currentView === "profile" ? "text-blue-600" : "text-gray-600"}`}
+            >
+              ライター
+            </span>
           </button>
           <button
             onClick={() => navigate("favorites")}
-            className="p-1 rounded-full hover:bg-gray-100"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${currentView === "favorites" ? "bg-gray-50" : ""}`}
           >
             <CustomStarIcon active={currentView === "favorites"} />
+            <span
+              className={`text-sm font-bold ${currentView === "favorites" ? "text-blue-600" : "text-gray-600"}`}
+            >
+              お気に入り
+            </span>
           </button>
           <button
             onClick={() => navigate("settings")}
-            className="p-1 rounded-full hover:bg-gray-100"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors ${["settings", "writerDash", "editorDash"].includes(currentView) ? "bg-gray-50" : ""}`}
           >
             <CustomSettingsIcon
               active={
@@ -1069,10 +1083,71 @@ export default function App() {
                 currentView === "editorDash"
               }
             />
+            <span
+              className={`text-sm font-bold ${["settings", "writerDash", "editorDash"].includes(currentView) ? "text-blue-600" : "text-gray-600"}`}
+            >
+              設定
+            </span>
           </button>
         </div>
       </div>
     </header>
+  );
+
+  // --- MobileNav ---
+  const MobileNav = () => (
+    <nav className="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex items-center justify-around pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 z-50">
+      <button
+        onClick={() => navigate("search")}
+        className="flex flex-col items-center justify-center gap-1 w-16"
+      >
+        <CustomSearchIcon active={currentView === "search"} />
+        <span
+          className={`text-[10px] ${currentView === "search" ? "text-blue-600 font-bold" : "text-gray-500"}`}
+        >
+          探す
+        </span>
+      </button>
+      <button
+        onClick={() => navigate("writers")}
+        className="flex flex-col items-center justify-center gap-1 w-16"
+      >
+        <CustomUserIcon active={currentView === "writers" || currentView === "profile"} />
+        <span
+          className={`text-[10px] ${currentView === "writers" || currentView === "profile" ? "text-blue-600 font-bold" : "text-gray-500"}`}
+        >
+          ライター
+        </span>
+      </button>
+      <button
+        onClick={() => navigate("favorites")}
+        className="flex flex-col items-center justify-center gap-1 w-16"
+      >
+        <CustomStarIcon active={currentView === "favorites"} />
+        <span
+          className={`text-[10px] ${currentView === "favorites" ? "text-blue-600 font-bold" : "text-gray-500"}`}
+        >
+          お気に入り
+        </span>
+      </button>
+      <button
+        onClick={() => navigate("settings")}
+        className="flex flex-col items-center justify-center gap-1 w-16"
+      >
+        <CustomSettingsIcon
+          active={
+            currentView === "settings" ||
+            currentView === "writerDash" ||
+            currentView === "editorDash"
+          }
+        />
+        <span
+          className={`text-[10px] ${["settings", "writerDash", "editorDash"].includes(currentView) ? "text-blue-600 font-bold" : "text-gray-500"}`}
+        >
+          設定
+        </span>
+      </button>
+    </nav>
   );
 
   // --- ArticleCard ---
@@ -1133,7 +1208,7 @@ export default function App() {
   const HomeView = () => {
     const published = articles.filter((a) => a.status === "published");
     return (
-      <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-300">
+      <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
         <div className="text-center py-5 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden">
           <LogoIcon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10" />
           <p className="text-blue-600 font-bold tracking-wide">
@@ -1389,7 +1464,7 @@ export default function App() {
     const hasFilter = keyword || selectedTags.length > 0 || selectedWriterIds.length > 0;
 
     return (
-      <div className="p-4 md:p-8 animate-in fade-in duration-300">
+      <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
         <div className="md:grid md:grid-cols-[280px_1fr] md:gap-6 md:items-start space-y-4 md:space-y-0">
           <div className="space-y-4">
             <div className="relative">
@@ -1534,9 +1609,6 @@ export default function App() {
     );
     return (
       <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 border-b-2 border-blue-500 pb-2 inline-flex">
-          <CustomUserIcon className="w-6 h-6" active={true} /> ライター・編集長 一覧
-        </h2>
         {editors.length > 0 && (
           <section>
             <h3 className="text-sm font-bold text-gray-500 mb-2 pl-2">編集長</h3>
@@ -1591,7 +1663,7 @@ export default function App() {
             {writer.role === "editor" ? "編集長" : "ライター"}
           </span>
         </div>
-        <div className="p-4 space-y-6 -mt-4 relative z-10">
+        <div className="p-4 md:p-8 space-y-6 -mt-4 relative z-10">
           {writer.bio && (
             <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100 text-gray-700 text-sm font-medium leading-relaxed">
               {writer.bio}
@@ -1625,10 +1697,7 @@ export default function App() {
       (a) => favorites.includes(a.id) && a.status === "published",
     );
     return (
-      <div className="p-4 space-y-4 animate-in fade-in duration-300 min-h-[70vh]">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 border-b-2 border-yellow-400 pb-2 inline-flex">
-          <CustomStarIcon className="w-6 h-6" active={true} /> お気に入り
-        </h2>
+      <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
         {userRole === "guest" ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
             <CustomStarIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -1671,10 +1740,7 @@ export default function App() {
 
   // --- SettingsView ---
   const SettingsView = () => (
-    <div className="p-4 space-y-6 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4 border-b-2 border-gray-300 pb-2 inline-flex">
-        <CustomSettingsIcon className="w-6 h-6" active={true} /> 設定
-      </h2>
+    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
       {userRole === "guest" && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
           <div>
@@ -2478,9 +2544,10 @@ export default function App() {
   ].includes(currentView);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10 text-gray-800 font-sans selection:bg-blue-200">
+    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-10 text-gray-800 font-sans selection:bg-blue-200">
       {!hideHeader && <Header />}
-      <main className="max-w-6xl mx-auto min-h-[80vh]">
+      {!hideHeader && <MobileNav />}
+      <main className="max-w-6xl mx-auto flex-1">
         {currentView === "notFound" && <NotFoundView />}
         {currentView === "home" && <HomeView />}
         {currentView === "article" && <ArticleView />}
