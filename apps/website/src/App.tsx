@@ -2446,10 +2446,10 @@ export default function App() {
         {currentView === "writerSeries" && (userRole === "writer" || userRole === "editor") && (
           <WriterSeriesPage />
         )}
-        {currentView === "editorDash" && <EditorDashboard />}
-        {currentView === "editorArticles" && <EditorArticlesView />}
-        {currentView === "editorRecommend" && <EditorRecommendView />}
-        {currentView === "editorWriters" && <EditorWritersView />}
+        {currentView === "editorDash" && userRole === "editor" && <EditorDashboard />}
+        {currentView === "editorArticles" && userRole === "editor" && <EditorArticlesView />}
+        {currentView === "editorRecommend" && userRole === "editor" && <EditorRecommendView />}
+        {currentView === "editorWriters" && userRole === "editor" && <EditorWritersView />}
         {currentView === "login" && <LoginView />}
         {currentView === "register" && <RegisterView />}
         {currentView === "privacy" && <PrivacyView />}
