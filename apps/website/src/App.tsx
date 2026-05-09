@@ -1843,14 +1843,14 @@ export default function App() {
 
     return (
       <div className="p-4 md:p-8 animate-in slide-in-from-right-8 duration-300">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-6">
           <button
             onClick={() => window.history.back()}
             className="p-2 bg-white rounded-full shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">連載管理</h1>
+          <h1 className="text-lg font-bold text-gray-900">連載管理</h1>
         </div>
 
         <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start space-y-6 md:space-y-0">
@@ -2023,14 +2023,14 @@ export default function App() {
 
     return (
       <div className="p-4 md:p-8 space-y-6 animate-in slide-in-from-right-8 duration-300">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-6">
           <button
             onClick={() => window.history.back()}
             className="p-2 bg-white rounded-full shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-bold text-gray-800">記事を作成</h2>
+          <h2 className="text-lg font-bold text-gray-800">記事を作成</h2>
         </div>
 
         {/* 記事一覧 */}
@@ -2118,14 +2118,14 @@ export default function App() {
     const pendingArticles = articles.filter((a) => a.status === "pending");
     return (
       <div className="p-4 space-y-6 animate-in slide-in-from-right-8 duration-300">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="-mx-4 -mt-4 px-4 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-6">
           <button
             onClick={() => window.history.back()}
             className="p-2 bg-white rounded-full shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-bold text-purple-800">編集長ダッシュボード</h2>
+          <h2 className="text-lg font-bold text-purple-800">編集長ダッシュボード</h2>
         </div>
         {userRole === "editor" && (
           <button
@@ -2700,11 +2700,11 @@ function EditorArticlesView() {
 
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
-      <div className="flex items-center gap-3 mb-2">
+      <div className="-mx-4 -mt-4 px-4 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-4">
         <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-xl font-bold text-purple-800">全記事の編集・削除</h2>
+        <h2 className="text-lg font-bold text-purple-800">全記事の編集・削除</h2>
       </div>
       {loading ? (
         <p className="text-center text-gray-400 py-8">読み込み中...</p>
@@ -2831,11 +2831,11 @@ function EditorRecommendView() {
 
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
-      <div className="flex items-center gap-3 mb-2">
+      <div className="-mx-4 -mt-4 px-4 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-4">
         <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-xl font-bold text-purple-800">おすすめ・人気設定</h2>
+        <h2 className="text-lg font-bold text-purple-800">おすすめ・人気設定</h2>
       </div>
       {loading ? (
         <p className="text-center text-gray-400 py-8">読み込み中...</p>
@@ -2951,11 +2951,11 @@ function EditorWritersView() {
 
   return (
     <div className="p-4 space-y-4 animate-in slide-in-from-right-8 duration-300">
-      <div className="flex items-center gap-3 mb-2">
+      <div className="-mx-4 -mt-4 px-4 bg-white border-b border-gray-200 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm mb-4">
         <button onClick={() => nav(-1)} className="p-2 bg-white rounded-full shadow-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-xl font-bold text-purple-800">ライター管理</h2>
+        <h2 className="text-lg font-bold text-purple-800">ライター管理</h2>
         <span className="ml-auto text-xs text-gray-400">{allProfiles.length} アカウント</span>
       </div>
 
