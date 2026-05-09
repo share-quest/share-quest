@@ -2129,7 +2129,7 @@ export default function App() {
         </div>
         {userRole === "editor" && (
           <button
-            onClick={() => nav(-1)}
+            onClick={() => navigate("writerDash")}
             className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold shadow-md flex items-center justify-between mb-4"
           >
             <span>記事を書く（ライター機能）</span>
